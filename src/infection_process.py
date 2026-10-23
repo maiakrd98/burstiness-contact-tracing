@@ -13,9 +13,9 @@ def calc_force_of_inf(start_time, end_time, gi_dist, b):
 
 
 def calc_prob_of_inf(start_time, end_time, gi_dist, b):
-    # force = calc_force_of_inf(start_time, end_time, gi_dist, b)
-    # prob = 1 - np.exp(-force)
-    # return prob
+    force = calc_force_of_inf(start_time, end_time, gi_dist, b)
+    prob = 1 - np.exp(-force)
+    return prob
     pass
 
 
