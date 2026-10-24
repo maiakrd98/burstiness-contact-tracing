@@ -19,6 +19,7 @@ def calc_prob_of_inf(start_time, end_time, gi_dist, b):
     prob = 1 - np.exp(-force)
     return prob
 
+# TODO: add seed!!
 
 def calc_inf_time(start_contact, end_contact, gi_dist):
     while True:
@@ -31,8 +32,16 @@ def calc_inf_time(start_contact, end_contact, gi_dist):
     return inf_time
 
 
-def sim_one_contact():
-    pass
+def sim_one_contact(start_contact, end_contact, gi_dist, b):
+    prob_of_inf = calc_prob_of_inf(start_contact, end_contact, gi_dist, b)
+    is_infected = np.random.choice([True, False], p=[prob_of_inf, 1-prob_of_inf])
+
+    if is_infected:
+        inf_time = calc_inf_time(start_contact, end_contact, gi_dist)
+        return is_infected, inf_time
+
+    else:
+        return is_infected
 
 
 def sim_one_index_case():
@@ -43,9 +52,9 @@ def main():
 
     gi_dist = stats.gamma(a=2.0, scale=1.0)
 
-    inf_time = calc_inf_time(3, 4, gi_dist)
+    is_infected = sim_one_contact(1, 3, gi_dist, 1, seed = 34)
 
-    print(inf_time)
+    print(is_infected)
 
 
 if __name__ == "__main__":

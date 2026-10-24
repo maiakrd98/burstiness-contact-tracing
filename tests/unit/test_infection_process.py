@@ -146,3 +146,42 @@ class TestCalcInfTime(unittest.TestCase):
         self.assertAlmostEqual(np.sum(inf_times<=3)/10000, 0.3455, delta = 0.02)
         self.assertAlmostEqual(np.sum((inf_times>=3) & (inf_times<=4))/10000, 0.3532, delta = 0.02)
         self.assertAlmostEqual(np.sum(inf_times>=4)/10000, 0.3014, delta = 0.02)
+
+
+class TestSimOneContact(unittest.TestCase):
+
+    def test_correct_prob_high(self):
+        infections = np.zeros(shape=10000)
+
+        a = 2
+        loc = 1
+        scale = 2
+        gamma_dist = gamma(a=a, loc=loc, scale=scale)
+
+        start_time = 2
+        end_time = 5
+        b = 2
+
+        for i in range(10000):
+            is_infected = infection_process.sim_one_contact(start_time, end_time, gamma_dist, b)
+            infections[i] = is_infected
+
+        self.assertAlmostEqual(np.sum(infections)/10000, 0.6349, delta=0.01)
+
+    def test_correct_prob_low(self):
+        infections = np.zeros(shape=10000)
+
+        a = 1
+        loc = 2
+        scale = 0.5
+        gamma_dist = gamma(a=a, loc=loc, scale=scale)
+
+        start_time = 3
+        end_time = 6
+        b = 2
+
+        for i in range(10000):
+            is_infected = infection_process.sim_one_contact(start_time, end_time, gamma_dist, b)
+            infections[i] = is_infected
+
+        self.assertAlmostEqual(np.sum(infections)/10000, 0.2366, delta=0.01)
