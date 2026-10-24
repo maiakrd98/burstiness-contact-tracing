@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
-from scipy.stats import gamma
-import scipy.integrate as integrate
+#from scipy.stats import gamma
+#from scipy.stats import truncate
+from scipy import stats
+# import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 
 
@@ -16,11 +18,17 @@ def calc_prob_of_inf(start_time, end_time, gi_dist, b):
     force = calc_force_of_inf(start_time, end_time, gi_dist, b)
     prob = 1 - np.exp(-force)
     return prob
-    pass
 
 
-def calc_inf_time():
-    pass
+def calc_inf_time(start_contact, end_contact, gi_dist):
+    while True:
+        inf_time_proposal = gi_dist.rvs(size=1)
+        if (inf_time_proposal >= start_contact and inf_time_proposal<= end_contact):
+            break
+
+    inf_time = inf_time_proposal
+    
+    return inf_time
 
 
 def sim_one_contact():
@@ -32,9 +40,12 @@ def sim_one_index_case():
 
 
 def main():
-    gi_dist = gamma(a=0.11504419425716839, loc=4.925310155292234, scale=2.247587519653209)
-    force = calc_force_of_inf(3.0003090192607216, 7.588729997993129, gi_dist, 3.727677573564176)
-    print(force)
+
+    gi_dist = stats.gamma(a=2.0, scale=1.0)
+
+    inf_time = calc_inf_time(3, 4, gi_dist)
+
+    print(inf_time)
 
 
 if __name__ == "__main__":

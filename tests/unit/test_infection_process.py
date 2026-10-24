@@ -111,3 +111,38 @@ class TestCalcProbOfInf(unittest.TestCase):
 
             # probability should approach 1 - exp(-b)
             self.assertAlmostEqual(prob, 1 - np.exp(-b))
+
+
+class TestCalcInfTime(unittest.TestCase):
+
+    def test_times_in_range(self):
+        for i in range(100):
+            a = random.uniform(1, 5)
+            scale = random.uniform(1, 5)
+            gamma_dist = gamma(a=a, loc=0, scale=scale)
+
+            start_time = random.uniform(0, 2)
+            end_time = start_time + random.uniform(1, 2)
+
+            inf_time = infection_process.calc_inf_time(start_time, end_time, gamma_dist)
+
+            self.assertTrue(inf_time >= start_time)
+            self.assertTrue(inf_time <= end_time)
+
+    def test_proportions_correct(self):
+        inf_times = np.zeros(shape=10000)
+        
+        a = 2
+        loc = 1
+        scale = 2
+        gamma_dist = gamma(a=a, loc=loc, scale=scale)
+
+        start_time = 2
+        end_time = 5
+
+        for i in range(10000):
+            inf_times[i] = infection_process.calc_inf_time(start_time, end_time, gamma_dist)[0]
+
+        self.assertAlmostEqual(np.sum(inf_times<=3)/10000, 0.3455, delta = 0.02)
+        self.assertAlmostEqual(np.sum((inf_times>=3) & (inf_times<=4))/10000, 0.3532, delta = 0.02)
+        self.assertAlmostEqual(np.sum(inf_times>=4)/10000, 0.3014, delta = 0.02)
