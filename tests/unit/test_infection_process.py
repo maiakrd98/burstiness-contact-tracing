@@ -163,7 +163,7 @@ class TestSimOneContact(unittest.TestCase):
         b = 2
 
         for i in range(10000):
-            is_infected = infection_process.sim_one_contact(start_time, end_time, gamma_dist, b)
+            is_infected, inf_time = infection_process.sim_one_contact(start_time, end_time, gamma_dist, b)
             infections[i] = is_infected
 
         self.assertAlmostEqual(np.sum(infections)/10000, 0.6349, delta=0.01)
@@ -181,7 +181,8 @@ class TestSimOneContact(unittest.TestCase):
         b = 2
 
         for i in range(10000):
-            is_infected = infection_process.sim_one_contact(start_time, end_time, gamma_dist, b)
+            is_infected, inf_time = infection_process.sim_one_contact(start_time, end_time, gamma_dist, b)
             infections[i] = is_infected
 
         self.assertAlmostEqual(np.sum(infections)/10000, 0.2366, delta=0.01)
+

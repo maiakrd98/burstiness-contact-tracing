@@ -41,7 +41,7 @@ def sim_one_contact(start_contact, end_contact, gi_dist, b):
         return is_infected, inf_time
 
     else:
-        return is_infected
+        return is_infected, None
 
 
 def sim_one_index_case():
