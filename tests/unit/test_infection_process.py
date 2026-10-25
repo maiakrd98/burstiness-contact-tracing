@@ -150,6 +150,25 @@ class TestCalcInfTime(unittest.TestCase):
 
 class TestSimOneContact(unittest.TestCase):
 
+    def test_inf_time_is_none_or_not(self):
+       for i in range(100):
+            a = random.uniform(1, 5)
+            scale = random.uniform(1, 5)
+            gamma_dist = gamma(a=a, loc=0, scale=scale)
+
+            start_time = random.uniform(0, 2)
+            end_time = start_time + random.uniform(1, 2)
+
+            b = random.uniform(1, 6)
+
+            is_infected, inf_time = infection_process.sim_one_contact(start_time, end_time, gamma_dist, b)
+
+            if is_infected:
+                self.assertTrue(inf_time is not None)
+
+            else:
+                self.assertTrue(inf_time is None)
+
     def test_correct_prob_high(self):
         infections = np.zeros(shape=10000)
 
