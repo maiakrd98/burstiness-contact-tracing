@@ -27,7 +27,7 @@ def calc_inf_time(start_contact, end_contact, gi_dist):
         if (inf_time_proposal >= start_contact and inf_time_proposal<= end_contact):
             break
 
-    inf_time = inf_time_proposal
+    inf_time = inf_time_proposal[0]
     
     return inf_time
 

@@ -141,7 +141,7 @@ class TestCalcInfTime(unittest.TestCase):
         end_time = 5
 
         for i in range(10000):
-            inf_times[i] = infection_process.calc_inf_time(start_time, end_time, gamma_dist)[0]
+            inf_times[i] = infection_process.calc_inf_time(start_time, end_time, gamma_dist)
 
         self.assertAlmostEqual(np.sum(inf_times<=3)/10000, 0.3455, delta = 0.02)
         self.assertAlmostEqual(np.sum((inf_times>=3) & (inf_times<=4))/10000, 0.3532, delta = 0.02)
@@ -186,3 +186,46 @@ class TestSimOneContact(unittest.TestCase):
 
         self.assertAlmostEqual(np.sum(infections)/10000, 0.2366, delta=0.01)
 
+    def test_time_dist_prob_high(self):
+        inf_times = np.zeros(shape=10000)
+
+        a = 2
+        loc = 1
+        scale = 2
+        gamma_dist = gamma(a=a, loc=loc, scale=scale)
+
+        start_time = 2
+        end_time = 5
+        b = 2
+
+        for i in range(10000):
+            is_infected, inf_time = infection_process.sim_one_contact(start_time, end_time, gamma_dist, b)
+            inf_times[i] = inf_time
+
+        num_infs = 10000 - np.sum(np.isnan(inf_times))
+
+        self.assertAlmostEqual(np.sum(inf_times<=3)/num_infs, 0.3455, delta = 0.02)
+        self.assertAlmostEqual(np.sum((inf_times>=3) & (inf_times<=4))/num_infs, 0.3532, delta = 0.02)
+        self.assertAlmostEqual(np.sum(inf_times>=4)/num_infs, 0.3014, delta = 0.02)
+
+    def test_time_dist_prob_low(self):
+        inf_times = np.zeros(shape=10000)
+
+        a = 1
+        loc = 2
+        scale = 0.5
+        gamma_dist = gamma(a=a, loc=loc, scale=scale)
+
+        start_time = 3
+        end_time = 6
+        b = 2
+
+        for i in range(10000):
+            is_infected, inf_time = infection_process.sim_one_contact(start_time, end_time, gamma_dist, b)
+            inf_times[i] = inf_time
+
+        num_infs = 10000 - np.sum(np.isnan(inf_times))
+
+        self.assertAlmostEqual(np.sum(inf_times<=4)/num_infs, 0.8668, delta = 0.02)
+        self.assertAlmostEqual(np.sum((inf_times>=4) & (inf_times<=5))/num_infs, 0.1173, delta = 0.02)
+        self.assertAlmostEqual(np.sum(inf_times>=5)/num_infs, 0.0159, delta = 0.02)
