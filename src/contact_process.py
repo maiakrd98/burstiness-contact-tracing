@@ -1,22 +1,23 @@
 import numpy as np
 import pandas as pd
 
-def contact_simulation(d, lam, t_max, seed=0):
+
+def contact_simulation(d, lam, t_max, rng=None):
     """Simulate the contact process for the index case of node 0.
 
     Parameters
     ----------
     d : int
-        Number of simultaneous contacts of node 0. 
+        Number of simultaneous contacts of node 0.
         This must be a positive integer.
     lam : float
-        Turnover rate (lambda) represents the rate at which contacts are replaced by new contacts.
+        Turnover rate (lambda) which contacts are replaced by new contacts.
         This must be a positive number.
     t_max : float
-        Length of time to simulate the contacts for and the time the simulation is stopped.
+        Length of time till the simulation is stopped.
         This must be a positive number.
-    seed : int (optional)
-        Seed for the random number generator (default of 0).
+    rng : int, numpy.random.Generator, or None (optional)
+        Source of randomness
 
     Returns
     -------
@@ -24,14 +25,15 @@ def contact_simulation(d, lam, t_max, seed=0):
         Data frame with one row per contact, sorted by id number, with columns:
 
         id : int
-            Id number of the contact node. Node 0, the index case, does not have a row. The initial
-            contacts' id are 1 to d, and new nodes continue with id from d + 1.
+            Id of the contact node. Node 0 does not have a row.
+            The initial contacts id are 1 to d.
         start_contact : float
             Time the node started contact with node 0.
         end_contact : float
-            Time the node stopped being a contact of node 0. Contacts at the end of the simulation
-            have an end_contact equal to t_max.
-    
+            Time the node stopped being a contact of node 0.
+            Contacts at the end of the simulation have an
+            end_contact equal to t_max.
+
     """
 
     # input validation:
@@ -55,16 +57,19 @@ def contact_simulation(d, lam, t_max, seed=0):
 
     # simulation:
     # random number generator
-    rng = np.random.default_rng(seed)
+    rng = np.random.default_rng(rng)
 
     # track and identify the number of contacts, constant d, of node 0
-    slot_id = list(range(1, d + 1)) # slot_id[k] = id of node in slot k
-    slot_start = [0.0] * d # slot_start[k] = time node starts contact with node 0
+    # slot_id[k] = id of node in slot k
+    slot_id = list(range(1, d + 1))
+    # slot_start[k] = time node starts contact with node 0
+    slot_start = [0.0] * d
 
     # assign id to new nodes
     next_id = d + 1
 
-    # initialize storage for finished contacts and their id, start contact time, and end contact time
+    # initialize storage for finished contacts and their id,
+    # start contact time, and end contact time
     contacts = []
 
     # initalize simulation time
