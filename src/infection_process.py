@@ -1,54 +1,153 @@
+import sys
 import numpy as np
 import pandas as pd
-#from scipy.stats import gamma
-#from scipy.stats import truncate
+# from scipy.stats import gamma
+# from scipy.stats import truncate
 from scipy import stats
 # import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 
 
-def calc_force_of_inf(start_time, end_time, gi_dist, b):
-    # TODO: deal with edge cases (e.g. end time larger than start,
-    # gi_dist wrong type, b<0)
-    force = b*(gi_dist.cdf(end_time)-gi_dist.cdf(start_time))
+def calc_force_of_inf(start_t, end_t, gi_dist, b):
+
+    if isinstance(b, bool) or not isinstance(b, (int, float)):
+        sys.exit("Invalid input: b must be a positive number.")
+    if b <= 0:
+        sys.exit("Invalid input: b must be a positive number.")
+    if isinstance(start_t, bool) or not isinstance(start_t, (int, float)):
+        sys.exit("Invalid input: start_t must be a nonnegative number.")
+    if start_t < 0:
+        sys.exit("Invalid input: start_t must be a nonnegative number.")
+    if isinstance(end_t, bool) or not isinstance(end_t, (int, float)):
+        sys.exit("Invalid input: end_t must be a nonnegative number.")
+    if end_t < 0:
+        sys.exit("Invalid input: end_t must be a nonnegative number.")
+    if end_t < start_t:
+        sys.exit("Invalid input: end_t must be greater than or equal to"
+                 " start_t.")
+    if not isinstance(gi_dist,
+                      stats._distn_infrastructure.rv_continuous_frozen):
+        sys.exit("Invalid input: gi_dist must be a scipy.stats frozen "
+                 "continuous random variable object.")
+
+    force = b*(gi_dist.cdf(end_t)-gi_dist.cdf(start_t))
     return force
 
 
-def calc_prob_of_inf(start_time, end_time, gi_dist, b):
-    force = calc_force_of_inf(start_time, end_time, gi_dist, b)
+def calc_prob_of_inf(start_t, end_t, gi_dist, b):
+
+    if isinstance(b, bool) or not isinstance(b, (int, float)):
+        sys.exit("Invalid input: b must be a positive number.")
+    if b <= 0:
+        sys.exit("Invalid input: b must be a positive number.")
+    if isinstance(start_t, bool) or not isinstance(start_t, (int, float)):
+        sys.exit("Invalid input: start_t must be a nonnegative number.")
+    if start_t < 0:
+        sys.exit("Invalid input: start_t must be a nonnegative number.")
+    if isinstance(end_t, bool) or not isinstance(end_t, (int, float)):
+        sys.exit("Invalid input: end_t must be a nonnegative number.")
+    if end_t < 0:
+        sys.exit("Invalid input: end_t must be a nonnegative number.")
+    if end_t < start_t:
+        sys.exit("Invalid input: end_t must be greater than or equal to"
+                 " start_t.")
+    if not isinstance(gi_dist,
+                      stats._distn_infrastructure.rv_continuous_frozen):
+        sys.exit("Invalid input: gi_dist must be a scipy.stats frozen "
+                 "continuous random variable object.")
+
+    force = calc_force_of_inf(start_t, end_t, gi_dist, b)
     prob = 1 - np.exp(-force)
     return prob
 
-# TODO: add seed!!
 
-def calc_inf_time(start_contact, end_contact, gi_dist, rng=None):
+def calc_inf_time(start_t, end_t, gi_dist, rng=None):
+
+    if isinstance(start_t, bool) or not isinstance(start_t, (int, float)):
+        sys.exit("Invalid input: start_t must be a nonnegative number.")
+    if start_t < 0:
+        sys.exit("Invalid input: start_t must be a nonnegative number.")
+    if isinstance(end_t, bool) or not isinstance(end_t, (int, float)):
+        sys.exit("Invalid input: end_t must be a nonnegative number.")
+    if end_t < 0:
+        sys.exit("Invalid input: end_t must be a nonnegative number.")
+    if end_t < start_t:
+        sys.exit("Invalid input: end_t must be greater than or equal to"
+                 " start_t.")
+    if not isinstance(gi_dist,
+                      stats._distn_infrastructure.rv_continuous_frozen):
+        sys.exit("Invalid input: gi_dist must be a scipy.stats frozen "
+                 "continuous random variable object.")
+
     rng = np.random.default_rng(rng)
+
     while True:
         inf_time_proposal = gi_dist.rvs(size=1, random_state=rng)
-        if (inf_time_proposal >= start_contact and inf_time_proposal<= end_contact):
+        if (inf_time_proposal >= start_t and inf_time_proposal <= end_t):
             break
 
     inf_time = inf_time_proposal[0]
-    
     return inf_time
 
 
-def sim_one_contact(start_contact, end_contact, gi_dist, b, rng=None):
-    rng = np.random.default_rng(rng)
-    prob_of_inf = calc_prob_of_inf(start_contact, end_contact, gi_dist, b)
-    is_infected = np.random.choice([True, False], p=[prob_of_inf, 1-prob_of_inf])
+def sim_one_contact(start_t, end_t, gi_dist, b, rng=None):
 
-    if is_infected:
-        inf_time = calc_inf_time(start_contact, end_contact, gi_dist, rng)
-        return is_infected, inf_time
+    if isinstance(start_t, bool) or not isinstance(start_t, (int, float)):
+        sys.exit("Invalid input: start_t must be a nonnegative number.")
+    if start_t < 0:
+        sys.exit("Invalid input: start_t must be a nonnegative number.")
+    if isinstance(end_t, bool) or not isinstance(end_t, (int, float)):
+        sys.exit("Invalid input: end_t must be a nonnegative number.")
+    if end_t < 0:
+        sys.exit("Invalid input: end_t must be a nonnegative number.")
+    if end_t < start_t:
+        sys.exit("Invalid input: end_t must be greater than or equal to"
+                 " start_t.")
+    if not isinstance(gi_dist,
+                      stats._distn_infrastructure.rv_continuous_frozen):
+        sys.exit("Invalid input: gi_dist must be a scipy.stats frozen "
+                 "continuous random variable object.")
+
+    rng = np.random.default_rng(rng)
+
+    prob_of_inf = calc_prob_of_inf(start_t, end_t, gi_dist, b)
+    is_inf = np.random.choice([True, False], p=[prob_of_inf, 1-prob_of_inf])
+
+    if is_inf:
+        inf_time = calc_inf_time(start_t, end_t, gi_dist, rng)
+        return is_inf, inf_time
 
     else:
-        return is_infected, None
+        return is_inf, None
 
 
 def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
+
     # TODO: add in get_gi call once merged
     # gi_dist = get_gi(alpha, beta, psi)
+
+    if isinstance(b, bool) or not isinstance(b, (int, float)):
+        sys.exit("Invalid input: b must be a positive number.")
+    if b <= 0:
+        sys.exit("Invalid input: b must be a positive number.")
+    if isinstance(psi, bool) or not isinstance(psi, (int, float)):
+        sys.exit("Invalid input: psi must be a number in the interval (0,1].")
+    if psi <= 0 or psi > 1:
+        sys.exit("Invalid input: psi must be a number in the interval (0,1].")
+    if isinstance(beta, bool) or not isinstance(beta, (int, float)):
+        sys.exit("Invalid input: beta must be a positive number.")
+    if beta <= 0:
+        sys.exit("Invalid input: beta must be a positive number.")
+    if isinstance(alpha, bool) or not isinstance(alpha, (int, float)):
+        sys.exit("Invalid input: alpha must be a positive number.")
+    if alpha <= 0:
+        sys.exit("Invalid input: alpha must be a positive number.")
+    if not isinstance(df, pd.DataFrame):
+        sys.exit("Invalid input: df must be a data frame.")
+    if "start_contact" not in df.columns.values.tolist():
+        sys.exit("Invalid input: df must contain column 'start_contact'")
+    if "end_contact" not in df.columns.values.tolist():
+        sys.exit("Invalid input: df must contain column 'end_contact'")
 
     # TODO: check that data frame columns are correct
 
@@ -56,12 +155,16 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
 
     gi_dist = stats.gamma(a=psi*alpha, loc=0, scale=1.0/beta)
 
-    new_df = df
+    new_df = df.copy()
     is_inf_list = []
     inf_time_list = []
 
     for i in range(len(df)):
-        is_inf, inf_time = sim_one_contact(df.start_contact[i], df.end_contact[i], gi_dist, b, rng)
+        is_inf, inf_time = sim_one_contact(df.start_contact[i],
+                                           df.end_contact[i],
+                                           gi_dist,
+                                           b,
+                                           rng)
         is_inf_list.append(is_inf)
         inf_time_list.append(inf_time)
 
@@ -72,7 +175,6 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
 
 
 def main():
-    #np.random.seed(42)
     rng = np.random.default_rng(42)
 
     contacts = [[1, 0, 2.3],
@@ -83,9 +185,9 @@ def main():
                 [6, 4.7, 6]]
     df = pd.DataFrame(contacts, columns=["id", "start_contact", "end_contact"])
 
-    alpha = 2
+    alpha = 1
     beta = 2
-    psi = 0.5
+    psi = 1
     b = 10
 
     print(df)
