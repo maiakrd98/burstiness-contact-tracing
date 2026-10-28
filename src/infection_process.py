@@ -4,38 +4,27 @@
      sigh: burstiness parameter (between 0 and 1)
 
      """
-# from https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html
 
 import numpy as np
 from scipy.stats import gamma
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots(1,1)
 
 def get_gi(alpha, beta, psi):
-    shape = (1.0 - psi) * alpha
+    
+    # scale is used for both lag and distribution calculations
     scale = 1.0/beta
-
-    # get the lag (
-    lag = np.random.gamma(shape, scale,1)
-
-    # return lag
-
     
-    gi_dist = gamma(a = psi*alpha, loc= lag, scale=scale)
+    # get the lag which is drawn from the shape and scale as defined as scale and shap_lag
+    shape_lag = (1.0 - psi) * alpha
+    lag = np.random.gamma(shape_lag, scale, 1)
 
-    a= psi*alpha
-    
-    x = np.linspace(gamma.ppf(0.01, a),
-                gamma.ppf(0.99, a), 100)
-    ax.plot(x, gi_dist.pdf(x))
-    plt.show()
+    # uses shape value of psi*alpha, location of lag, and scale as defined above to calculate distribution
+    alpha_dist = psi*alpha
+    gi_dist = gamma(alpha_dist, lag, scale)
     
     return gi_dist
 
     
 
 if __name__ =="__main__":
-    # Test the function a few times
-    print("Testing get_gi function:")
     val = get_gi(alpha=2.0, beta=1.0, psi=0.1)
     print(val)
