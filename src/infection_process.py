@@ -30,7 +30,7 @@ def get_gi(alpha, beta, psi):
     # parameter validation
     # alpha must be a positive number
     if (isinstance(alpha, bool)
-        or not isinstance(alpha, (int, float, np.number))):
+            or not isinstance(alpha, (int, float, np.number))):
         raise TypeError("alpha must be a number")
     if alpha <= 0:
         raise ValueError("alpha must be positive (>0)")
@@ -204,8 +204,6 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
     if "end_contact" not in df.columns.values.tolist():
         sys.exit("Invalid input: df must contain column 'end_contact'")
 
-    # TODO: check that data frame columns are correct
-
     rng = np.random.default_rng(rng)
 
     gi_dist = stats.gamma(a=psi*alpha, loc=0, scale=1.0/beta)
@@ -256,6 +254,11 @@ def main():
 
     val = get_gi(alpha=2.0, beta=1.0, psi=0)
     print(val.pdf(2))
+
+    arr = np.array([10, -50, 127], dtype=np.int8)
+    print(type(arr[1]))
+    print(isinstance(1, int))
+    print(isinstance(1, np.number))
 
 
 if __name__ == "__main__":
