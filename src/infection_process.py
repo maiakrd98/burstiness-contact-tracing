@@ -8,7 +8,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 
-def get_gi(alpha, beta, psi):
+def get_gi(alpha, beta, psi, rng=None):
     """Calculates the gamma distribution object
 
     Parameters
@@ -47,12 +47,14 @@ def get_gi(alpha, beta, psi):
     if not (0 <= psi <= 1):
         raise ValueError("psi must be between 0 and 1 inclusive")
 
+    rng = np.random.default_rng(rng)
+
     # scale is used for both lag and distribution calculations
     scale = 1.0/beta
 
     # get the lag, drawn from the shape and scale defined as scale and shap_lag
     shape_lag = (1.0 - psi) * alpha
-    lag = np.random.gamma(shape_lag, scale, 1)
+    lag = rng.gamma(shape_lag, scale, 1)
 
     # uses shape value of psi*alpha, location of lag, and scale
     # defined above to calculate distribution
@@ -166,7 +168,7 @@ def sim_one_contact(start_t, end_t, gi_dist, b, rng=None):
     rng = np.random.default_rng(rng)
 
     prob_of_inf = calc_prob_of_inf(start_t, end_t, gi_dist, b)
-    is_inf = np.random.choice([True, False], p=[prob_of_inf, 1-prob_of_inf])
+    is_inf = rng.choice([True, False], p=[prob_of_inf, 1-prob_of_inf])
 
     if is_inf:
         inf_time = calc_inf_time(start_t, end_t, gi_dist, rng)
@@ -228,7 +230,7 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
 
 
 def main():
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(456982309564557)
 
     contacts = [[1, 0, 2.3],
                 [2, 0, 3.1],
@@ -252,13 +254,7 @@ def main():
         inf_time = calc_inf_time(0, 5, gi_dist, rng)
         print(inf_time)
 
-    val = get_gi(alpha=2.0, beta=1.0, psi=0)
-    print(val.pdf(2))
-
-    arr = np.array([10, -50, 127], dtype=np.int8)
-    print(type(arr[1]))
-    print(isinstance(1, int))
-    print(isinstance(1, np.number))
+    val = get_gi(alpha=2.0, beta=1.0, psi=0.1, rng=rng)
 
 
 if __name__ == "__main__":

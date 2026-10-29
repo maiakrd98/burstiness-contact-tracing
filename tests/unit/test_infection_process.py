@@ -12,31 +12,34 @@ class TestGetGi(unittest.TestCase):
 
     def test_alpha_good(self):
         # alpha must be a postive number
+        rng = np.random.default_rng(0)
         for good_alpha in [1.0, 2, 4, 5.5, np.float64(2.0)]:
             with self.subTest(alpha=good_alpha):
+                psi = 0.5
                 result = infection_process.get_gi(
-                    alpha=good_alpha, beta=1.0, psi=0.5
+                    alpha=good_alpha, beta=1.0, psi=psi, rng=rng
                 )
 
                 # args[0] = alpha*psi, check that this is true alpha > 0
-                psi = 0.5
                 alpha = (result.args[0])/psi
                 self.assertAlmostEqual(result.args[0], good_alpha*psi)
                 self.assertGreater(alpha, 0)
 
     def test_alpha_bad(self):
         # alpha must be a postive number
+        rng = np.random.default_rng(0)
         for bad_alpha in [-2, "blah", -150.3, None, True, 0]:
             with self.subTest(alpha=bad_alpha):
                 with self.assertRaises((TypeError, ValueError)):
-                    infection_process.get_gi(bad_alpha, 1.0, 0.5)
+                    infection_process.get_gi(bad_alpha, 1.0, 0.5, rng=rng)
 
     def test_beta_good(self):
         # beta must be a postive number
+        rng = np.random.default_rng(0)
         for good_beta in [1.0, 2, 4, 5.5, np.float64(2.0)]:
             with self.subTest(beta=good_beta):
                 result = infection_process.get_gi(
-                    alpha=1.0, beta=good_beta, psi=0.5)
+                    alpha=1.0, beta=good_beta, psi=0.5, rng=rng)
 
                 # args[2] = 1.0/beta, check true and that beta > than zero
                 beta = 1.0/(result.args[2])
@@ -45,17 +48,19 @@ class TestGetGi(unittest.TestCase):
 
     def test_beta_bad(self):
         # beta must be a postive number
+        rng = np.random.default_rng(0)
         for bad_beta in [-2, "blah", -150.3, None, True, 0]:
             with self.subTest(beta=bad_beta):
                 with self.assertRaises((TypeError, ValueError)):
-                    infection_process.get_gi(1.0, bad_beta, 0.5)
+                    infection_process.get_gi(1.0, bad_beta, 0.5, rng=rng)
 
     def test_psi_good(self):
         # psi must be a number [0,1]
+        rng = np.random.default_rng(0)
         for good_psi in [0, 0.0, 1.0, 1, 0.5, 0.75]:
             with self.subTest(psi=good_psi):
                 result = infection_process.get_gi(
-                    alpha=1.0, beta=1.0, psi=good_psi)
+                    alpha=1.0, beta=1.0, psi=good_psi, rng=rng)
 
                 # args[0] = alpha*psi, check true and that the psi [0,1]
                 alpha = 1.0
@@ -66,17 +71,21 @@ class TestGetGi(unittest.TestCase):
 
     def test_psi_bad(self):
         # psi must be a number [0,1]
+        rng = np.random.default_rng(0)
         for bad_psi in [-0.1, 5.3, -100, 45.3]:
             with self.subTest(psi=bad_psi):
                 with self.assertRaises((TypeError, ValueError)):
-                    infection_process.get_gi(alpha=1.0, beta=1.0, psi=bad_psi)
+                    infection_process.get_gi(alpha=1.0, beta=1.0, psi=bad_psi, rng=rng)
 
     def test_returns_gamma_distribution(self):
         # get_gi must return a SciPy gamma distribution object
-        result = infection_process.get_gi(alpha=2.0, beta=1.0, psi=0.5)
+        rng = np.random.default_rng(0)
+        result = infection_process.get_gi(alpha=2.0, beta=1.0, psi=0.5, rng=rng)
         self.assertEqual(result.dist.name, 'gamma')
 
     def test_lags_distribution(self):
+        rng = np.random.default_rng(0)
+
         # Test that the lag follow the expected gamma dist over 1000 trials
         alpha = 2.0
         beta = 1.0
@@ -93,7 +102,7 @@ class TestGetGi(unittest.TestCase):
         n_trials = 1000
         lags = []
         for _ in range(n_trials):
-            result = infection_process.get_gi(alpha=alpha, beta=beta, psi=psi)
+            result = infection_process.get_gi(alpha=alpha, beta=beta, psi=psi, rng=rng)
             lag_value = result.args[1]  # Extracts the 'lag' used as loc
             lags.append(lag_value)
 
@@ -217,6 +226,7 @@ class TestCalcProbOfInf(unittest.TestCase):
 class TestCalcInfTime(unittest.TestCase):
 
     def test_times_in_range(self):
+        rng = np.random.default_rng(0)
         for i in range(100):
             a = random.uniform(1, 5)
             scale = random.uniform(1, 5)
@@ -227,12 +237,14 @@ class TestCalcInfTime(unittest.TestCase):
 
             inf_time = infection_process.calc_inf_time(start_t,
                                                        end_t,
-                                                       gamma_dist)
+                                                       gamma_dist,
+                                                       rng=rng)
 
             self.assertTrue(inf_time >= start_t)
             self.assertTrue(inf_time <= end_t)
 
     def test_proportions_correct(self):
+        rng = np.random.default_rng(0)
         inf_times = np.zeros(shape=10000)
 
         a = 2
@@ -246,7 +258,8 @@ class TestCalcInfTime(unittest.TestCase):
         for i in range(10000):
             inf_times[i] = infection_process.calc_inf_time(start_t,
                                                            end_t,
-                                                           gamma_dist)
+                                                           gamma_dist,
+                                                           rng=rng)
 
         self.assertAlmostEqual(np.sum(inf_times <= 3)/10000,
                                0.3455,
@@ -263,6 +276,7 @@ class TestCalcInfTime(unittest.TestCase):
 class TestSimOneContact(unittest.TestCase):
 
     def test_inf_time_is_none_or_not(self):
+        rng = np.random.default_rng(0)
         for i in range(100):
             a = random.uniform(1, 5)
             scale = random.uniform(1, 5)
@@ -276,7 +290,8 @@ class TestSimOneContact(unittest.TestCase):
             is_inf, inf_time = infection_process.sim_one_contact(start_t,
                                                                  end_t,
                                                                  gamma_dist,
-                                                                 b)
+                                                                 b,
+                                                                 rng=rng)
 
             if is_inf:
                 self.assertTrue(inf_time is not None)
@@ -285,6 +300,7 @@ class TestSimOneContact(unittest.TestCase):
                 self.assertTrue(inf_time is None)
 
     def test_correct_prob_high(self):
+        rng = np.random.default_rng(0)
         infections = np.zeros(shape=10000)
 
         a = 2
@@ -300,12 +316,14 @@ class TestSimOneContact(unittest.TestCase):
             is_inf, inf_time = infection_process.sim_one_contact(start_t,
                                                                  end_t,
                                                                  gamma_dist,
-                                                                 b)
+                                                                 b,
+                                                                 rng=rng)
             infections[i] = is_inf
 
         self.assertAlmostEqual(np.sum(infections)/10000, 0.6349, delta=0.01)
 
     def test_correct_prob_low(self):
+        rng = np.random.default_rng(0)
         infections = np.zeros(shape=10000)
 
         a = 1
@@ -321,12 +339,14 @@ class TestSimOneContact(unittest.TestCase):
             is_inf, inf_time = infection_process.sim_one_contact(start_t,
                                                                  end_t,
                                                                  gamma_dist,
-                                                                 b)
+                                                                 b,
+                                                                 rng=rng)
             infections[i] = is_inf
 
         self.assertAlmostEqual(np.sum(infections)/10000, 0.2366, delta=0.01)
 
     def test_time_dist_prob_high(self):
+        rng = np.random.default_rng(0)
         inf_times = np.zeros(shape=10000)
 
         a = 2
@@ -342,7 +362,8 @@ class TestSimOneContact(unittest.TestCase):
             is_inf, inf_time = infection_process.sim_one_contact(start_t,
                                                                  end_t,
                                                                  gamma_dist,
-                                                                 b)
+                                                                 b,
+                                                                 rng=rng)
             inf_times[i] = inf_time
 
         num_infs = 10000 - np.sum(np.isnan(inf_times))
@@ -359,6 +380,7 @@ class TestSimOneContact(unittest.TestCase):
                                delta=0.02)
 
     def test_time_dist_prob_low(self):
+        rng = np.random.default_rng(0)
         inf_times = np.zeros(shape=10000)
 
         a = 1
@@ -374,7 +396,8 @@ class TestSimOneContact(unittest.TestCase):
             is_inf, inf_time = infection_process.sim_one_contact(start_t,
                                                                  end_t,
                                                                  gamma_dist,
-                                                                 b)
+                                                                 b,
+                                                                 rng=rng)
             inf_times[i] = inf_time
 
         num_infs = 10000 - np.sum(np.isnan(inf_times))
