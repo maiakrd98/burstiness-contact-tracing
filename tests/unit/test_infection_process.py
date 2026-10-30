@@ -20,9 +20,9 @@ class TestGetGi(unittest.TestCase):
                     alpha=good_alpha, beta=1.0, psi=psi, rng=rng
                 )
 
-                # args[0] = alpha*psi, check that this is true alpha > 0
-                alpha = (result.args[0])/psi
-                self.assertAlmostEqual(result.args[0], good_alpha*psi)
+                # result.kwds['a'] = alpha*psi, check that this is true alpha > 0
+                alpha = (result.kwds['a'])/psi
+                self.assertAlmostEqual(result.kwds['a'], good_alpha*psi)
                 self.assertGreater(alpha, 0)
 
     def test_alpha_bad(self):
@@ -41,9 +41,9 @@ class TestGetGi(unittest.TestCase):
                 result = infection_process.get_gi(
                     alpha=1.0, beta=good_beta, psi=0.5, rng=rng)
 
-                # args[2] = 1.0/beta, check true and that beta > than zero
-                beta = 1.0/(result.args[2])
-                self.assertAlmostEqual(result.args[2], 1.0/good_beta)
+                # result.kwds['scale'] = 1.0/beta, check true and that beta > than zero
+                beta = 1.0/(result.kwds['scale'])
+                self.assertAlmostEqual(result.kwds['scale'], 1.0/good_beta)
                 self.assertGreater(beta, 0)
 
     def test_beta_bad(self):
@@ -62,10 +62,10 @@ class TestGetGi(unittest.TestCase):
                 result = infection_process.get_gi(
                     alpha=1.0, beta=1.0, psi=good_psi, rng=rng)
 
-                # args[0] = alpha*psi, check true and that the psi [0,1]
+                # result.kwds['a'] = alpha*psi, check true and that the psi [0,1]
                 alpha = 1.0
-                psi = (result.args[0])/alpha
-                self.assertAlmostEqual(result.args[0], good_psi*alpha)
+                psi = (result.kwds['a'])/alpha
+                self.assertAlmostEqual(result.kwds['a'], good_psi*alpha)
                 self.assertGreaterEqual(psi, 0)
                 self.assertLessEqual(psi, 1)
 
@@ -98,12 +98,12 @@ class TestGetGi(unittest.TestCase):
         expected_mean = shape_lag * scale
         expected_std = np.sqrt(shape_lag) * scale
 
-        # Run the function 1000 times and extract the lag from result.args[1]
+        # Run the function 1000 times and extract the lag from result.kwds['loc']
         n_trials = 1000
         lags = []
         for _ in range(n_trials):
             result = infection_process.get_gi(alpha=alpha, beta=beta, psi=psi, rng=rng)
-            lag_value = result.args[1]  # Extracts the 'lag' used as loc
+            lag_value = result.kwds['loc']  # Extracts the 'lag' used as loc
             lags.append(lag_value)
 
         lags = np.array(lags)
@@ -413,6 +413,9 @@ class TestSimOneContact(unittest.TestCase):
                                0.0159,
                                delta=0.02)
 
+# TODO: test results are the same with same rng (and results diff in loop?)
+# TODO: test bad inputs
+# TODO: test sim one index case
 
 if __name__ == "__main__":
     unittest.main()
