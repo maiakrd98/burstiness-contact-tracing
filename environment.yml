@@ -1,0 +1,9 @@
+name: swe4s-proj
+channels:
+  - conda-forge
+dependencies:
+  - matplotlib
+  - numpy
+  - pandas
+  - pycodestyle
+  - scipy
