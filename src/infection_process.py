@@ -55,7 +55,6 @@ def get_gi(alpha, beta, psi, rng=None):
     # get the lag, drawn from the shape and scale defined as scale and shap_lag
     shape_lag = (1.0 - psi) * alpha
     lag = rng.gamma(shape_lag, scale, 1)[0]
-    # why is this always zero??
 
     # uses shape value of psi*alpha, location of lag, and scale
     # defined above to calculate distribution
@@ -65,13 +64,11 @@ def get_gi(alpha, beta, psi, rng=None):
 
     return gi_dist
 
-# TODO: update documentation and code review
-
 
 def calc_force_of_inf(start_t, end_t, gi_dist, b):
     """
-    Calculates the force of infection for a given infectiousness distribution, \
-    b value, and time interval.
+    Calculates the force of infection for a given infectiousness \
+    distribution, b value, and time interval.
 
     Parameters
     ----------
@@ -120,8 +117,8 @@ def calc_force_of_inf(start_t, end_t, gi_dist, b):
 
 def calc_prob_of_inf(start_t, end_t, gi_dist, b):
     """
-    Calculates the probability that a contact becomes infected over a given time \
-    interval for a given infectiousness distribution and b value.
+    Calculates the probability that a contact becomes infected over a given \
+    time interval for a given infectiousness distribution and b value.
 
     Parameters
     ----------
@@ -186,8 +183,9 @@ def calc_inf_time(start_t, end_t, gi_dist, rng=None):
         Infectiousness distribution.
 
     rng : Numpy Random Generator (optional)
-        A random number generator to ensure reproducibility. Defaults to None, \
-        in which case you will get different outputs each time you run the function.
+        A random number generator to ensure reproducibility. Defaults to \
+        None, in which case you will get different outputs each time you run \
+        the function.
 
     Returns
     -------
@@ -224,9 +222,9 @@ def calc_inf_time(start_t, end_t, gi_dist, rng=None):
 
 def sim_one_contact(start_t, end_t, gi_dist, b, rng=None):
     """
-    Simulates one contact with a given start and end time by randomly choosing \
-    whether they were infected or not based on their probability of infection. \
-    If they were infected, also generates an infection time.
+    Simulates one contact with a given start and end time by randomly \
+    choosing whether they were infected or not based on their probability \
+    of infection. If they were infected, also generates an infection time.
 
     Parameters
     ----------
@@ -244,16 +242,18 @@ def sim_one_contact(start_t, end_t, gi_dist, b, rng=None):
         desired reproduction number. Must be positive.
 
     rng : Numpy Random Generator (optional)
-        A random number generator to ensure reproducibility. Defaults to None, \
-        in which case you will get different outputs each time you run the function.
+        A random number generator to ensure reproducibility. Defaults to \
+        None, in which case you will get different outputs each time you \
+        run the function.
 
     Returns
     -------
     is_inf : boolean
         True if the contact was infected, False if not.
-    
+
     inf_time : float
-        Time at which the contact was infected. Returns None if is_inf is false.
+        Time at which the contact was infected. Returns None if is_inf is \
+        false.
     """
 
     if isinstance(start_t, bool) or not isinstance(start_t, (int, float)):
@@ -287,45 +287,49 @@ def sim_one_contact(start_t, end_t, gi_dist, b, rng=None):
 
 def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
     """
-    Simulates one index case, including whether or not each contact was infected \
-    and their infection times.
+    Simulates one index case, including whether or not each contact was \
+    infected and their infection times.
 
     Parameters
     ----------
     df : Numpy data frame
-        Must include the columns "id", "start_contact", and "end_contact". Each row \
-        of this data frame represents a contact of the index case and lists their id, \
-        what time their contact started and what time it ended. 
+        Must include the columns "id", "start_contact", and "end_contact". \
+        Each row of this data frame represents a contact of the index case \
+        and lists their id, what time their contact started and what time it \
+        ended.
 
     alpha : float
-        The shape parameter of the overall population generation interval distribution \
-        (which is assumed to be gamma distributed). Must be positive.
+        The shape parameter of the overall population generation interval \
+        distribution (which is assumed to be gamma distributed). Must be \
+        positive.
 
     beta : float
-        The rate parameter of the overall population generation interval distribution. \
-        Note that beta is equal to 1/scale in the scale parameterization of the gamma \
-        distribution. Must be positive.
+        The rate parameter of the overall population generation interval \
+        distribution. Note that beta is equal to 1/scale in the scale \
+        parameterization of the gamma distribution. Must be positive.
 
     psi : float
-        The burstiness parameter. Must be in the interval (0,1]. The smaller psi is, \
-        the more bursty the infection is. 
+        The burstiness parameter. Must be in the interval (0,1]. The smaller \
+        psi is, the more bursty the infection is.
 
     b : float
         Infectiousness scaling parameter, which you can tune to obtain the \
         desired reproduction number. Must be positive.
 
     rng : Numpy Random Generator (optional)
-        A random number generator to ensure reproducibility. Defaults to None, \
-        in which case you will get different outputs each time you run the function.
+        A random number generator to ensure reproducibility. Defaults to \
+        None, in which case you will get different outputs each time you run \
+        the function.
 
     Returns
     -------
     new_df : Numpy data frame
-        Numpy data frame with columns "id", "start_contact", "end_contact", "is_inf", \
-        and "inf_time". Each row of this data frame represents a contact of the index \
-        case. The first three columns are inherited from df, "is_inf" indicates whether \
-        that contact was infected or not, and "inf_time" gives their time of infection \
-        if so (if not infected, "inf_time" is nan).
+        Numpy data frame with columns "id", "start_contact", "end_contact", \
+        "is_inf", and "inf_time". Each row of this data frame represents a \
+        contact of the index case. The first three columns are inherited \
+        from df, "is_inf" indicates whether that contact was infected or not, \
+        and "inf_time" gives their time of infection if so (if not infected, \
+        "inf_time" is nan).
     """
 
     if isinstance(b, bool) or not isinstance(b, (int, float)):
@@ -390,13 +394,9 @@ def main():
     psi = 0.9
     b = 10
 
-    
     new_df = sim_one_index_case(df, alpha, beta, psi, b, rng)
     print(new_df)
 
 
-
 if __name__ == "__main__":
     main()
-
-# TODO: add documentation
