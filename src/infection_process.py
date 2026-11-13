@@ -378,6 +378,42 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
     return new_df
 
 
+def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, rng=None):
+
+    if isinstance(N, bool) or not isinstance(N, (int, np.integer)):
+        sys.exit("Invalid input: N must be a positive integer.")
+    if N < 1:
+        sys.exit("Invalid input: N must be a positive integer.")
+    if isinstance(d, bool) or not isinstance(d, (int, np.integer)):
+        sys.exit("Invalid input: d must be a positive integer.")
+    if d < 1:
+        sys.exit("Invalid input: d must be a positive integer.")
+    if isinstance(lam, bool) or not isinstance(lam, (int, float)):
+        sys.exit("Invalid input: lam must be a positive number.")
+    if not np.isfinite(lam) or lam <= 0:
+        sys.exit("Invalid input: lam must be a positive number.")
+    if isinstance(b, bool) or not isinstance(b, (int, float)):
+        sys.exit("Invalid input: b must be a positive number.")
+    if b <= 0:
+        sys.exit("Invalid input: b must be a positive number.")
+    if isinstance(psi, bool) or not isinstance(psi, (int, float)):
+        sys.exit("Invalid input: psi must be a number in the interval (0,1].")
+    if psi <= 0 or psi > 1:
+        sys.exit("Invalid input: psi must be a number in the interval (0,1].")
+    if isinstance(beta, bool) or not isinstance(beta, (int, float)):
+        sys.exit("Invalid input: beta must be a positive number.")
+    if beta <= 0:
+        sys.exit("Invalid input: beta must be a positive number.")
+    if isinstance(alpha, bool) or not isinstance(alpha, (int, float)):
+        sys.exit("Invalid input: alpha must be a positive number.")
+    if alpha <= 0:
+        sys.exit("Invalid input: alpha must be a positive number.")
+
+    rng = np.random.default_rng(rng)
+
+    pass
+
+
 def main():
     rng = np.random.default_rng(456982309564557)
 
