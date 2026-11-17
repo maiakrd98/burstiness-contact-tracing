@@ -6,6 +6,7 @@ import pandas as pd
 from scipy import stats
 # import scipy.integrate as integrate
 import matplotlib.pyplot as plt
+import contact_process
 
 
 def get_gi(alpha, beta, psi, rng=None):
@@ -378,7 +379,7 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
     return new_df
 
 
-def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, rng=None):
+def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
 
     if isinstance(N, bool) or not isinstance(N, (int, np.integer)):
         sys.exit("Invalid input: N must be a positive integer.")
@@ -408,14 +409,31 @@ def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, rng=None):
         sys.exit("Invalid input: alpha must be a positive number.")
     if alpha <= 0:
         sys.exit("Invalid input: alpha must be a positive number.")
+    # TODO: check t_max
 
     rng = np.random.default_rng(rng)
 
-    pass
+    if t_max==None:
+        t_max = stats.gamma.ppf(0.999, a=alpha, scale=1/beta)
+
+    all_cases_list = []
+
+    for i in range(N):
+
+        df = contact_process.contact_simulation(d, lam, t_max, rng=rng)
+        new_df = sim_one_index_case(df, alpha, beta, psi, b, rng=rng)
+        new_df.insert(loc=0, column='index_case_id', value=i)
+
+        all_cases_list.append(new_df)
+    
+    all_cases = pd.concat(all_cases_list, ignore_index=True)
+    all_cases.rename({"id": "contact_id"})
+
+    return all_cases
 
 
 def main():
-    rng = np.random.default_rng(456982309564557)
+    rng = np.random.default_rng(456983809564557)
 
     contacts = [[1, 0, 2.3],
                 [2, 0, 3.1],
@@ -425,13 +443,17 @@ def main():
                 [6, 4.7, 6]]
     df = pd.DataFrame(contacts, columns=["id", "start_contact", "end_contact"])
 
-    alpha = 1
-    beta = 2
-    psi = 0.9
-    b = 10
+    alpha = 2
+    beta = 1
+    psi = 0.5
+    b = 1
 
-    new_df = sim_one_index_case(df, alpha, beta, psi, b, rng)
-    print(new_df)
+    N = 10
+    d = 4
+    lam = 2
+
+    cases = sim_N_index_cases(N, d, lam, alpha, beta, psi, b, rng=rng)
+    print(cases)
 
 
 if __name__ == "__main__":
