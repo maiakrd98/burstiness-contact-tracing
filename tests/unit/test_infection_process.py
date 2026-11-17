@@ -429,6 +429,8 @@ class TestSimOneContact(unittest.TestCase):
 # TODO: test results are the same with same rng (and results diff in loop?)
 # TODO: test bad inputs
 # TODO: test sim one index case
+# TODO: test sim N index cases
+# TODO: test get R from df (with small df and known R)
 
 
 if __name__ == "__main__":

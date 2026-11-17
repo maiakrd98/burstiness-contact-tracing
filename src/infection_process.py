@@ -431,6 +431,15 @@ def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
 
     return all_cases
 
+def calc_R_from_df(df):
+    # TODO: validate data frame (check cols and data types/values?)
+
+    N = len(set(df['index_case_id']))
+    total_infs = sum(df['is_inf'])
+    R = total_infs/N
+
+    return R
+
 
 def main():
     rng = np.random.default_rng(456983809564557)
@@ -453,7 +462,7 @@ def main():
     lam = 2
 
     cases = sim_N_index_cases(N, d, lam, alpha, beta, psi, b, rng=rng)
-    print(cases)
+    print(calc_R_from_df(cases))
 
 
 if __name__ == "__main__":
