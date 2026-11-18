@@ -431,6 +431,7 @@ class TestSimOneContact(unittest.TestCase):
 # TODO: test sim one index case
 # TODO: test sim N index cases
 # TODO: test get R from df (with small df and known R)
+# TODO: test get R
 
 
 if __name__ == "__main__":

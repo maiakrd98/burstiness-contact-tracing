@@ -440,6 +440,13 @@ def calc_R_from_df(df):
 
     return R
 
+def calc_R(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
+    # TODO: validate inputs
+    cases = sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max, rng)
+    R = calc_R_from_df(cases)
+
+    return R
+
 
 def main():
     rng = np.random.default_rng(456983809564557)
@@ -457,12 +464,19 @@ def main():
     psi = 0.5
     b = 1
 
-    N = 10
+    N = 100
     d = 4
     lam = 2
 
-    cases = sim_N_index_cases(N, d, lam, alpha, beta, psi, b, rng=rng)
-    print(calc_R_from_df(cases))
+    b_vals = [0.1*x for x in range(1, 100)]
+    R_vals = []
+    for b in b_vals:
+        R_vals.append(calc_R(N, d, lam, alpha, beta, psi, b, rng=rng))
+
+    print(b_vals)
+    print(R_vals)
+    plt.scatter(b_vals, R_vals)
+    plt.show()
 
 
 if __name__ == "__main__":
