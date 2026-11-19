@@ -448,9 +448,36 @@ def calc_R(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
     return R
 
 
-def determine_b(N, d, lam, alpha, beta, psi, R, start_b=None, t_max=None, rng=None):
+def determine_b(N, d, lam, alpha, beta, psi, R, start_b=2, tol=0.1, max_runs=10, t_max=None, rng=None):
 
-    pass
+    # first find value that overshoots R
+    for n in range(10):
+        R_over = calc_R(N, d, lam, alpha, beta, psi, start_b*2**n, t_max, rng)
+        if R_over>R:
+            break
+
+    if n==9 and R_over<=R:
+        sys.exit("Could not get a large enough R value in the alloted time. Try entering a larger value for start_b.")
+    # TODO: test all 3 situations: n<9, n==9 but R_over is big enough, error
+
+    # binary search
+    low_b = 0
+    high_b = start_b*2**n
+    runs=0
+
+    while runs<max_runs:
+        mid_b = (low_b+high_b)/2
+        mid_R = calc_R(N, d, lam, alpha, beta, psi, mid_b, t_max, rng)
+
+        if abs(mid_R-R)<tol: return mid_b
+        elif R<mid_R: high_b=mid_b
+        else: low_b=mid_b
+
+        runs+=1
+
+    sys.exit("Could not find b in the allotted runs. Try increasing max_runs or increading tol.")
+    # TODO: what happens if we skip the "true" value because of randomness?? Issues if tol is too small...
+
 
 
 def main():
@@ -464,15 +491,21 @@ def main():
                 [6, 4.7, 6]]
     df = pd.DataFrame(contacts, columns=["id", "start_contact", "end_contact"])
 
-    alpha = 2
-    beta = 1
-    psi = 0.5
+    alpha = 2.39
+    beta = 0.336
+    psi = 0.1
     b = 2
 
     N = 100
     d = 4
     lam = 2
 
+    R = 5
+
+    b = determine_b(N, d, lam, alpha, beta, psi, R, rng=rng)
+    print(b)
+
+'''
     b_vals = [0.1*x for x in range(1, 100)]
     R_vals = []
     for b in b_vals:
@@ -483,7 +516,6 @@ def main():
     plt.scatter(b_vals, R_vals)
     plt.show()
 
-'''
     d_vals = range(1, 20)
     R_vals = []
     for d in d_vals:
