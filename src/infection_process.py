@@ -448,6 +448,11 @@ def calc_R(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
     return R
 
 
+def determine_b(N, d, lam, alpha, beta, psi, R, start_b=None, t_max=None, rng=None):
+
+    pass
+
+
 def main():
     rng = np.random.default_rng(456983809564557)
 
@@ -462,7 +467,7 @@ def main():
     alpha = 2
     beta = 1
     psi = 0.5
-    b = 1
+    b = 2
 
     N = 100
     d = 4
@@ -477,6 +482,30 @@ def main():
     print(R_vals)
     plt.scatter(b_vals, R_vals)
     plt.show()
+
+'''
+    d_vals = range(1, 20)
+    R_vals = []
+    for d in d_vals:
+        cases = sim_N_index_cases(N, d, lam, alpha, beta, psi, b, rng=rng)
+        R_vals.append(calc_R_from_df(cases))
+
+    print(d_vals)
+    print(R_vals)
+    plt.scatter(d_vals, R_vals)
+    plt.show()
+    
+    psi_vals = [0.025*x for x in range(1, 40)]
+    R_vals = []
+    for psi in psi_vals:
+        R_vals.append(calc_R(N, d, lam, alpha, beta, psi, b, rng=rng))
+
+    print(psi_vals)
+    print(R_vals)
+    plt.scatter(psi_vals, R_vals)
+    plt.show()
+
+'''
 
 
 if __name__ == "__main__":
