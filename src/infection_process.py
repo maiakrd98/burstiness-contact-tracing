@@ -33,20 +33,20 @@ def get_gi(alpha, beta, psi, rng=None):
     if (isinstance(alpha, bool)
             or not isinstance(alpha, (int, float, np.number))):
         raise TypeError("alpha must be a number")
-    if alpha <= 0:
+    if not np.isfinite(alpha) or alpha <= 0:
         raise ValueError("alpha must be positive (>0)")
 
     # beta must be a positve number
     if isinstance(beta, bool) or not isinstance(beta, (int, float, np.number)):
         raise TypeError("beta must be a number")
-    if beta <= 0:
+    if not np.isfinite(beta) or beta <= 0:
         raise ValueError("beta must be positive (> 0)")
 
     # psi must be a positive number from [0,1]
     if isinstance(psi, bool) or not isinstance(psi, (int, float, np.number)):
         raise TypeError("psi must be a number")
-    if not (0 <= psi <= 1):
-        raise ValueError("psi must be between 0 and 1 inclusive")
+    if not (0 < psi <= 1):
+        raise ValueError("psi must be a number in the interval (0,1]")
 
     rng = np.random.default_rng(rng)
 
@@ -94,15 +94,15 @@ def calc_force_of_inf(start_t, end_t, gi_dist, b):
 
     if isinstance(b, bool) or not isinstance(b, (int, float)):
         sys.exit("Invalid input: b must be a positive number.")
-    if b <= 0:
+    if not np.isfinite(b) or b <= 0:
         sys.exit("Invalid input: b must be a positive number.")
     if isinstance(start_t, bool) or not isinstance(start_t, (int, float)):
         sys.exit("Invalid input: start_t must be a nonnegative number.")
-    if start_t < 0:
+    if not np.isfinite(start_t) or start_t < 0:
         sys.exit("Invalid input: start_t must be a nonnegative number.")
     if isinstance(end_t, bool) or not isinstance(end_t, (int, float)):
         sys.exit("Invalid input: end_t must be a nonnegative number.")
-    if end_t < 0:
+    if not np.isfinite(end_t) or end_t < 0:
         sys.exit("Invalid input: end_t must be a nonnegative number.")
     if end_t < start_t:
         sys.exit("Invalid input: end_t must be greater than or equal to"
@@ -144,15 +144,15 @@ def calc_prob_of_inf(start_t, end_t, gi_dist, b):
 
     if isinstance(b, bool) or not isinstance(b, (int, float)):
         sys.exit("Invalid input: b must be a positive number.")
-    if b <= 0:
+    if not np.isfinite(b) or b <= 0:
         sys.exit("Invalid input: b must be a positive number.")
     if isinstance(start_t, bool) or not isinstance(start_t, (int, float)):
         sys.exit("Invalid input: start_t must be a nonnegative number.")
-    if start_t < 0:
+    if not np.isfinite(start_t) or start_t < 0:
         sys.exit("Invalid input: start_t must be a nonnegative number.")
     if isinstance(end_t, bool) or not isinstance(end_t, (int, float)):
         sys.exit("Invalid input: end_t must be a nonnegative number.")
-    if end_t < 0:
+    if not np.isfinite(end_t) or end_t < 0:
         sys.exit("Invalid input: end_t must be a nonnegative number.")
     if end_t < start_t:
         sys.exit("Invalid input: end_t must be greater than or equal to"
@@ -196,11 +196,11 @@ def calc_inf_time(start_t, end_t, gi_dist, rng=None):
 
     if isinstance(start_t, bool) or not isinstance(start_t, (int, float)):
         sys.exit("Invalid input: start_t must be a nonnegative number.")
-    if start_t < 0:
+    if not np.isfinite(start_t) or start_t < 0:
         sys.exit("Invalid input: start_t must be a nonnegative number.")
     if isinstance(end_t, bool) or not isinstance(end_t, (int, float)):
         sys.exit("Invalid input: end_t must be a nonnegative number.")
-    if end_t < 0:
+    if not np.isfinite(end_t) or end_t < 0:
         sys.exit("Invalid input: end_t must be a nonnegative number.")
     if end_t < start_t:
         sys.exit("Invalid input: end_t must be greater than or equal to"
@@ -259,11 +259,11 @@ def sim_one_contact(start_t, end_t, gi_dist, b, rng=None):
 
     if isinstance(start_t, bool) or not isinstance(start_t, (int, float)):
         sys.exit("Invalid input: start_t must be a nonnegative number.")
-    if start_t < 0:
+    if not np.isfinite(start_t) or start_t < 0:
         sys.exit("Invalid input: start_t must be a nonnegative number.")
     if isinstance(end_t, bool) or not isinstance(end_t, (int, float)):
         sys.exit("Invalid input: end_t must be a nonnegative number.")
-    if end_t < 0:
+    if not np.isfinite(end_t) or end_t < 0:
         sys.exit("Invalid input: end_t must be a nonnegative number.")
     if end_t < start_t:
         sys.exit("Invalid input: end_t must be greater than or equal to"
@@ -335,7 +335,7 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
 
     if isinstance(b, bool) or not isinstance(b, (int, float)):
         sys.exit("Invalid input: b must be a positive number.")
-    if b <= 0:
+    if not np.isfinite(b) or b <= 0:
         sys.exit("Invalid input: b must be a positive number.")
     if isinstance(psi, bool) or not isinstance(psi, (int, float)):
         sys.exit("Invalid input: psi must be a number in the interval (0,1].")
@@ -343,11 +343,11 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
         sys.exit("Invalid input: psi must be a number in the interval (0,1].")
     if isinstance(beta, bool) or not isinstance(beta, (int, float)):
         sys.exit("Invalid input: beta must be a positive number.")
-    if beta <= 0:
+    if not np.isfinite(beta) or beta <= 0:
         sys.exit("Invalid input: beta must be a positive number.")
     if isinstance(alpha, bool) or not isinstance(alpha, (int, float)):
         sys.exit("Invalid input: alpha must be a positive number.")
-    if alpha <= 0:
+    if not np.isfinite(alpha) or alpha <= 0:
         sys.exit("Invalid input: alpha must be a positive number.")
     if not isinstance(df, pd.DataFrame):
         sys.exit("Invalid input: df must be a data frame.")
@@ -380,6 +380,7 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
 
 
 def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
+    # TODO: add documentation
 
     if isinstance(N, bool) or not isinstance(N, (int, np.integer)):
         sys.exit("Invalid input: N must be a positive integer.")
@@ -395,7 +396,7 @@ def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
         sys.exit("Invalid input: lam must be a positive number.")
     if isinstance(b, bool) or not isinstance(b, (int, float)):
         sys.exit("Invalid input: b must be a positive number.")
-    if b <= 0:
+    if not np.isfinite(b) or b <= 0:
         sys.exit("Invalid input: b must be a positive number.")
     if isinstance(psi, bool) or not isinstance(psi, (int, float)):
         sys.exit("Invalid input: psi must be a number in the interval (0,1].")
@@ -403,13 +404,17 @@ def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
         sys.exit("Invalid input: psi must be a number in the interval (0,1].")
     if isinstance(beta, bool) or not isinstance(beta, (int, float)):
         sys.exit("Invalid input: beta must be a positive number.")
-    if beta <= 0:
+    if not np.isfinite(beta) or beta <= 0:
         sys.exit("Invalid input: beta must be a positive number.")
     if isinstance(alpha, bool) or not isinstance(alpha, (int, float)):
         sys.exit("Invalid input: alpha must be a positive number.")
-    if alpha <= 0:
+    if not np.isfinite(alpha) or alpha <= 0:
         sys.exit("Invalid input: alpha must be a positive number.")
-    # TODO: check t_max
+    if t_max is not None:
+        if isinstance(t_max, bool) or not isinstance(t_max, (int, float)):
+            sys.exit("Invalid input: t_max must be a positive number.")
+        if not np.isfinite(t_max) or t_max <= 0:
+            sys.exit("Invalid input: t_max must be a positive number.")
 
     rng = np.random.default_rng(rng)
 
@@ -433,7 +438,16 @@ def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
 
 
 def calc_R_from_df(df):
-    # TODO: validate data frame (check cols and data types/values?)
+    # TODO: add documentation
+
+    if not isinstance(df, pd.DataFrame):
+        sys.exit("Invalid input: df must be a data frame.")
+    if "index_case_id" not in df.columns.values.tolist():
+        sys.exit("Invalid input: df must contain column 'index_case_id'")
+    if "is_inf" not in df.columns.values.tolist():
+        sys.exit("Invalid input: df must contain column 'is_inf'")
+    if df['is_inf'].dtype != bool:
+        sys.exit("Invalid input: 'is_inf' column must contain booleans")
 
     N = len(set(df['index_case_id']))
     total_infs = sum(df['is_inf'])
@@ -443,7 +457,41 @@ def calc_R_from_df(df):
 
 
 def calc_R(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
-    # TODO: validate inputs
+    # TODO: add documentation
+    if isinstance(N, bool) or not isinstance(N, (int, np.integer)):
+        sys.exit("Invalid input: N must be a positive integer.")
+    if N < 1:
+        sys.exit("Invalid input: N must be a positive integer.")
+    if isinstance(d, bool) or not isinstance(d, (int, np.integer)):
+        sys.exit("Invalid input: d must be a positive integer.")
+    if d < 1:
+        sys.exit("Invalid input: d must be a positive integer.")
+    if isinstance(lam, bool) or not isinstance(lam, (int, float)):
+        sys.exit("Invalid input: lam must be a positive number.")
+    if not np.isfinite(lam) or lam <= 0:
+        sys.exit("Invalid input: lam must be a positive number.")
+    if isinstance(b, bool) or not isinstance(b, (int, float)):
+        sys.exit("Invalid input: b must be a positive number.")
+    if not np.isfinite(b) or b <= 0:
+        sys.exit("Invalid input: b must be a positive number.")
+    if isinstance(psi, bool) or not isinstance(psi, (int, float)):
+        sys.exit("Invalid input: psi must be a number in the interval (0,1].")
+    if psi <= 0 or psi > 1:
+        sys.exit("Invalid input: psi must be a number in the interval (0,1].")
+    if isinstance(beta, bool) or not isinstance(beta, (int, float)):
+        sys.exit("Invalid input: beta must be a positive number.")
+    if not np.isfinite(beta) or beta <= 0:
+        sys.exit("Invalid input: beta must be a positive number.")
+    if isinstance(alpha, bool) or not isinstance(alpha, (int, float)):
+        sys.exit("Invalid input: alpha must be a positive number.")
+    if not np.isfinite(alpha) or alpha <= 0:
+        sys.exit("Invalid input: alpha must be a positive number.")
+    if t_max is not None:
+        if isinstance(t_max, bool) or not isinstance(t_max, (int, float)):
+            sys.exit("Invalid input: t_max must be a positive number.")
+        if not np.isfinite(t_max) or t_max <= 0:
+            sys.exit("Invalid input: t_max must be a positive number.")
+
     cases = sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max, rng)
     R = calc_R_from_df(cases)
 
@@ -451,8 +499,55 @@ def calc_R(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
 
 
 def determine_b(N, d, lam, alpha, beta, psi, R,
-                start_b=2, tol=0.1, max_runs=10,
+                start_b=2, tol=0.1, maxruns=10,
                 t_max=None, rng=None):
+    # TODO: add documentation
+
+    if isinstance(N, bool) or not isinstance(N, (int, np.integer)):
+        sys.exit("Invalid input: N must be a positive integer.")
+    if N < 1:
+        sys.exit("Invalid input: N must be a positive integer.")
+    if isinstance(d, bool) or not isinstance(d, (int, np.integer)):
+        sys.exit("Invalid input: d must be a positive integer.")
+    if d < 1:
+        sys.exit("Invalid input: d must be a positive integer.")
+    if isinstance(lam, bool) or not isinstance(lam, (int, float)):
+        sys.exit("Invalid input: lam must be a positive number.")
+    if not np.isfinite(lam) or lam <= 0:
+        sys.exit("Invalid input: lam must be a positive number.")
+    if isinstance(R, bool) or not isinstance(R, (int, float)):
+        sys.exit("Invalid input: R must be a positive number.")
+    if not np.isfinite(R) or R <= 0:
+        sys.exit("Invalid input: R must be a positive number.")
+    if isinstance(psi, bool) or not isinstance(psi, (int, float)):
+        sys.exit("Invalid input: psi must be a number in the interval (0,1].")
+    if psi <= 0 or psi > 1:
+        sys.exit("Invalid input: psi must be a number in the interval (0,1].")
+    if isinstance(beta, bool) or not isinstance(beta, (int, float)):
+        sys.exit("Invalid input: beta must be a positive number.")
+    if not np.isfinite(beta) or beta <= 0:
+        sys.exit("Invalid input: beta must be a positive number.")
+    if isinstance(alpha, bool) or not isinstance(alpha, (int, float)):
+        sys.exit("Invalid input: alpha must be a positive number.")
+    if not np.isfinite(alpha) or alpha <= 0:
+        sys.exit("Invalid input: alpha must be a positive number.")
+    if isinstance(start_b, bool) or not isinstance(start_b, (int, float)):
+        sys.exit("Invalid input: start_b must be a positive number.")
+    if not np.isfinite(start_b) or start_b <= 0:
+        sys.exit("Invalid input: start_b must be a positive number.")
+    if isinstance(tol, bool) or not isinstance(tol, (int, float)):
+        sys.exit("Invalid input: tol must be a positive number.")
+    if not np.isfinite(tol) or tol <= 0:
+        sys.exit("Invalid input: tol must be a positive number.")
+    if isinstance(maxruns, bool) or not isinstance(maxruns, (int, np.integer)):
+        sys.exit("Invalid input: maxruns must be a positive integer.")
+    if maxruns < 1:
+        sys.exit("Invalid input: maxruns must be a positive integer.")
+    if t_max is not None:
+        if isinstance(t_max, bool) or not isinstance(t_max, (int, float)):
+            sys.exit("Invalid input: t_max must be a positive number.")
+        if not np.isfinite(t_max) or t_max <= 0:
+            sys.exit("Invalid input: t_max must be a positive number.")
 
     # first find value that overshoots R
     for n in range(10):
@@ -470,7 +565,7 @@ def determine_b(N, d, lam, alpha, beta, psi, R,
     high_b = start_b*2**n
     runs = 0
 
-    while runs < max_runs:
+    while runs < maxruns:
         mid_b = (low_b+high_b)/2
         mid_R = calc_R(N, d, lam, alpha, beta, psi, mid_b, t_max, rng)
 
@@ -484,7 +579,7 @@ def determine_b(N, d, lam, alpha, beta, psi, R,
         runs += 1
 
     sys.exit("Could not find b in the allotted runs. "
-             "Try increasing max_runs or increading tol.")
+             "Try increasing maxruns or increading tol.")
     # TODO: what happens if we skip the "true" value because of randomness??
     # Issues if tol is too small...
 
@@ -511,7 +606,7 @@ def main():
 
     R = 5
 
-    b = determine_b(N, d, lam, alpha, beta, psi, R, rng=rng)
+    b = determine_b(N, d, lam, alpha, beta, psi, R, tol=0.05, rng=rng)
     print(b)
 
 
