@@ -413,7 +413,7 @@ def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
 
     rng = np.random.default_rng(rng)
 
-    if t_max==None:
+    if t_max is None:
         t_max = stats.gamma.ppf(0.999, a=alpha, scale=1/beta)
 
     all_cases_list = []
@@ -425,11 +425,12 @@ def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
         new_df.insert(loc=0, column='index_case_id', value=i)
 
         all_cases_list.append(new_df)
-    
+
     all_cases = pd.concat(all_cases_list, ignore_index=True)
     all_cases.rename({"id": "contact_id"})
 
     return all_cases
+
 
 def calc_R_from_df(df):
     # TODO: validate data frame (check cols and data types/values?)
@@ -440,6 +441,7 @@ def calc_R_from_df(df):
 
     return R
 
+
 def calc_R(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
     # TODO: validate inputs
     cases = sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max, rng)
@@ -448,40 +450,47 @@ def calc_R(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
     return R
 
 
-def determine_b(N, d, lam, alpha, beta, psi, R, start_b=2, tol=0.1, max_runs=10, t_max=None, rng=None):
+def determine_b(N, d, lam, alpha, beta, psi, R,
+                start_b=2, tol=0.1, max_runs=10,
+                t_max=None, rng=None):
 
     # first find value that overshoots R
     for n in range(10):
         R_over = calc_R(N, d, lam, alpha, beta, psi, start_b*2**n, t_max, rng)
-        if R_over>R:
+        if R_over > R:
             break
 
-    if n==9 and R_over<=R:
-        sys.exit("Could not get a large enough R value in the alloted time. Try entering a larger value for start_b.")
+    if n == 9 and R_over <= R:
+        sys.exit("Could not get a large enough R value in the alloted time. "
+                 "Try entering a larger value for start_b.")
     # TODO: test all 3 situations: n<9, n==9 but R_over is big enough, error
 
     # binary search
     low_b = 0
     high_b = start_b*2**n
-    runs=0
+    runs = 0
 
-    while runs<max_runs:
+    while runs < max_runs:
         mid_b = (low_b+high_b)/2
         mid_R = calc_R(N, d, lam, alpha, beta, psi, mid_b, t_max, rng)
 
-        if abs(mid_R-R)<tol: return mid_b
-        elif R<mid_R: high_b=mid_b
-        else: low_b=mid_b
+        if abs(mid_R-R) < tol:
+            return mid_b
+        elif R < mid_R:
+            high_b = mid_b
+        else:
+            low_b = mid_b
 
-        runs+=1
+        runs += 1
 
-    sys.exit("Could not find b in the allotted runs. Try increasing max_runs or increading tol.")
-    # TODO: what happens if we skip the "true" value because of randomness?? Issues if tol is too small...
-
+    sys.exit("Could not find b in the allotted runs. "
+             "Try increasing max_runs or increading tol.")
+    # TODO: what happens if we skip the "true" value because of randomness??
+    # Issues if tol is too small...
 
 
 def main():
-    rng = np.random.default_rng(456983809564557)
+    rng = np.random.default_rng(45698380564557)
 
     contacts = [[1, 0, 2.3],
                 [2, 0, 3.1],
@@ -505,6 +514,7 @@ def main():
     b = determine_b(N, d, lam, alpha, beta, psi, R, rng=rng)
     print(b)
 
+
 '''
     b_vals = [0.1*x for x in range(1, 100)]
     R_vals = []
@@ -526,7 +536,7 @@ def main():
     print(R_vals)
     plt.scatter(d_vals, R_vals)
     plt.show()
-    
+
     psi_vals = [0.025*x for x in range(1, 40)]
     R_vals = []
     for psi in psi_vals:
