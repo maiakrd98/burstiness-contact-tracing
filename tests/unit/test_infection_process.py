@@ -57,15 +57,15 @@ class TestGetGi(unittest.TestCase):
                     infection_process.get_gi(1.0, bad_beta, 0.5, rng=rng)
 
     def test_psi_good(self):
-        # psi must be a number [0,1]
+        # psi must be a number (0,1]
         rng = np.random.default_rng(0)
-        for good_psi in [0, 0.0, 1.0, 1, 0.5, 0.75]:
+        for good_psi in [1.0, 1, 0.25, 0.5, 0.75]:
             with self.subTest(psi=good_psi):
                 result = infection_process.get_gi(
                     alpha=1.0, beta=1.0, psi=good_psi, rng=rng)
 
                 # result.kwds['a'] = alpha*psi, check true and that the
-                # psi [0,1]
+                # psi (0,1]
                 alpha = 1.0
                 psi = (result.kwds['a'])/alpha
                 self.assertAlmostEqual(result.kwds['a'], good_psi*alpha)
@@ -75,7 +75,7 @@ class TestGetGi(unittest.TestCase):
     def test_psi_bad(self):
         # psi must be a number [0,1]
         rng = np.random.default_rng(0)
-        for bad_psi in [-0.1, 5.3, -100, 45.3]:
+        for bad_psi in [-0.1, 0, 5.3, -100, 45.3]:
             with self.subTest(psi=bad_psi):
                 with self.assertRaises((TypeError, ValueError)):
                     infection_process.get_gi(alpha=1.0,
@@ -133,14 +133,15 @@ class TestGetGi(unittest.TestCase):
 class TestCalcForceOfInf(unittest.TestCase):
 
     def test_known_gamma_cdfs(self):
-        for i in range(100):
-            a = random.uniform(0, 5)
-            loc = random.uniform(0, 1)
-            scale = random.uniform(0, 5)
+        rng = np.random.default_rng(0)
+        for _ in range(100):
+            a = rng.uniform(0, 5)
+            loc = rng.uniform(0, 1)
+            scale = rng.uniform(0, 5)
             gamma_dist = gamma(a=a, loc=loc, scale=scale)
-            start_t = loc + random.uniform(0, 5)
-            end_t = start_t + random.uniform(0, 5)
-            b = random.uniform(0, 5)
+            start_t = loc + rng.uniform(0, 5)
+            end_t = start_t + rng.uniform(0, 5)
+            b = rng.uniform(0, 5)
 
             force = infection_process.calc_force_of_inf(start_t,
                                                         end_t,
@@ -153,14 +154,15 @@ class TestCalcForceOfInf(unittest.TestCase):
             self.assertAlmostEqual(force, exp_force, places=5)
 
     def test_end_time_less_than_loc(self):
-        for i in range(100):
-            a = random.uniform(0, 5)
-            loc = random.uniform(5, 10)
-            scale = random.uniform(0, 5)
+        rng = np.random.default_rng(0)
+        for _ in range(100):
+            a = rng.uniform(0, 5)
+            loc = rng.uniform(5, 10)
+            scale = rng.uniform(0, 5)
             gamma_dist = gamma(a=a, loc=loc, scale=scale)
-            start_t = random.uniform(0, 2)
-            end_t = start_t + random.uniform(0, 2)
-            b = random.uniform(0, 5)
+            start_t = rng.uniform(0, 2)
+            end_t = start_t + rng.uniform(0, 2)
+            b = rng.uniform(0, 5)
 
             force = infection_process.calc_force_of_inf(start_t,
                                                         end_t,
@@ -173,17 +175,18 @@ class TestCalcForceOfInf(unittest.TestCase):
 class TestCalcProbOfInf(unittest.TestCase):
 
     def test_increasing_end_time(self):
-        for i in range(100):
-            a = random.uniform(0, 5)
-            loc = random.uniform(0, 5)
-            scale = random.uniform(0, 5)
+        rng = np.random.default_rng(0)
+        for _ in range(100):
+            a = rng.uniform(0, 5)
+            loc = rng.uniform(0, 5)
+            scale = rng.uniform(0, 5)
             gamma_dist = gamma(a=a, loc=loc, scale=scale)
 
-            start_t = random.uniform(0, 5)
-            end_t_1 = start_t + random.uniform(0, 5)
+            start_t = rng.uniform(0, 5)
+            end_t_1 = start_t + rng.uniform(0, 5)
             end_t_2 = end_t_1 + 1
 
-            b = random.uniform(0, 5)
+            b = rng.uniform(0, 5)
 
             prob_1 = infection_process.calc_prob_of_inf(start_t,
                                                         end_t_1,
@@ -198,17 +201,18 @@ class TestCalcProbOfInf(unittest.TestCase):
             self.assertTrue(prob_1 <= prob_2)
 
     def test_decreasing_start_time(self):
-        for i in range(100):
-            a = random.uniform(0, 5)
-            loc = random.uniform(0, 5)
-            scale = random.uniform(0, 5)
+        rng = np.random.default_rng(0)
+        for _ in range(100):
+            a = rng.uniform(0, 5)
+            loc = rng.uniform(0, 5)
+            scale = rng.uniform(0, 5)
             gamma_dist = gamma(a=a, loc=loc, scale=scale)
 
-            start_t_1 = random.uniform(1, 5)
+            start_t_1 = rng.uniform(1, 5)
             start_t_2 = start_t_1 - 1
-            end_t = start_t_1 + random.uniform(0, 5)
+            end_t = start_t_1 + rng.uniform(0, 5)
 
-            b = random.uniform(0, 5)
+            b = rng.uniform(0, 5)
 
             prob_1 = infection_process.calc_prob_of_inf(start_t_1,
                                                         end_t,
@@ -223,12 +227,13 @@ class TestCalcProbOfInf(unittest.TestCase):
             self.assertTrue(prob_1 <= prob_2)
 
     def test_prob_approaches_correct_value(self):
-        for i in range(100):
-            a = random.uniform(0, 5)
-            loc = random.uniform(0, 5)
-            scale = random.uniform(0, 1)
+        rng = np.random.default_rng(0)
+        for _ in range(100):
+            a = rng.uniform(0, 5)
+            loc = rng.uniform(0, 5)
+            scale = rng.uniform(0, 1)
             gamma_dist = gamma(a=a, loc=loc, scale=scale)
-            b = random.uniform(0, 5)
+            b = rng.uniform(0, 5)
 
             prob = infection_process.calc_prob_of_inf(0, 100000, gamma_dist, b)
 
@@ -240,13 +245,13 @@ class TestCalcInfTime(unittest.TestCase):
 
     def test_times_in_range(self):
         rng = np.random.default_rng(0)
-        for i in range(100):
-            a = random.uniform(1, 5)
-            scale = random.uniform(1, 5)
+        for _ in range(100):
+            a = rng.uniform(1, 5)
+            scale = rng.uniform(1, 5)
             gamma_dist = gamma(a=a, loc=0, scale=scale)
 
-            start_t = random.uniform(0, 2)
-            end_t = start_t + random.uniform(1, 2)
+            start_t = rng.uniform(0, 2)
+            end_t = start_t + rng.uniform(1, 2)
 
             inf_time = infection_process.calc_inf_time(start_t,
                                                        end_t,
@@ -285,20 +290,65 @@ class TestCalcInfTime(unittest.TestCase):
                                0.3014,
                                delta=0.02)
 
+    def test_deterministic_with_same_seed(self):
+        rng = np.random.default_rng(0)
+        for _ in range(10):
+            a = rng.uniform(1, 5)
+            scale = rng.uniform(1, 5)
+            gamma_dist = gamma(a=a, loc=0, scale=scale)
+
+            start_t = rng.uniform(0, 2)
+            end_t = start_t + rng.uniform(1, 2)
+
+            inf_time_1 = infection_process.calc_inf_time(start_t,
+                                                         end_t,
+                                                         gamma_dist,
+                                                         rng=0)
+            inf_time_2 = infection_process.calc_inf_time(start_t,
+                                                         end_t,
+                                                         gamma_dist,
+                                                         rng=0)
+
+            self.assertEqual(inf_time_1, inf_time_2)
+
+    def test_diff_with_diff_seed(self):
+        rng = np.random.default_rng(0)
+        for _ in range(10):
+            seed_1 = rng.integers(1, 100)
+            seed_2 = seed_1 + rng.integers(1, 100)
+
+            a = rng.uniform(1, 5)
+            scale = rng.uniform(1, 5)
+            gamma_dist = gamma(a=a, loc=0, scale=scale)
+
+            start_t = rng.uniform(0, 2)
+            end_t = start_t + rng.uniform(1, 2)
+
+            inf_time_1 = infection_process.calc_inf_time(start_t,
+                                                         end_t,
+                                                         gamma_dist,
+                                                         rng=seed_1)
+            inf_time_2 = infection_process.calc_inf_time(start_t,
+                                                         end_t,
+                                                         gamma_dist,
+                                                         rng=seed_2)
+
+            self.assertNotEqual(inf_time_1, inf_time_2)
+
 
 class TestSimOneContact(unittest.TestCase):
 
     def test_inf_time_is_none_or_not(self):
         rng = np.random.default_rng(0)
-        for i in range(100):
-            a = random.uniform(1, 5)
-            scale = random.uniform(1, 5)
+        for _ in range(100):
+            a = rng.uniform(1, 5)
+            scale = rng.uniform(1, 5)
             gamma_dist = gamma(a=a, loc=0, scale=scale)
 
-            start_t = random.uniform(0, 2)
-            end_t = start_t + random.uniform(1, 2)
+            start_t = rng.uniform(0, 2)
+            end_t = start_t + rng.uniform(1, 2)
 
-            b = random.uniform(1, 6)
+            b = rng.uniform(1, 6)
 
             is_inf, inf_time = infection_process.sim_one_contact(start_t,
                                                                  end_t,
@@ -425,6 +475,31 @@ class TestSimOneContact(unittest.TestCase):
         self.assertAlmostEqual(np.sum(inf_times >= 5)/num_infs,
                                0.0159,
                                delta=0.02)
+
+    def test_deterministic_with_same_seed(self):
+        rng = np.random.default_rng(0)
+        for _ in range(10):
+            a = rng.uniform(1, 5)
+            scale = rng.uniform(1, 5)
+            g_dist = gamma(a=a, loc=0, scale=scale)
+
+            start_t = rng.uniform(0, 2)
+            end_t = start_t + rng.uniform(1, 2)
+            b = rng.uniform(1, 3)
+
+            is_inf_1, inf_time_1 = infection_process.sim_one_contact(start_t,
+                                                                     end_t,
+                                                                     g_dist,
+                                                                     b,
+                                                                     rng=0)
+            is_inf_2, inf_time_2 = infection_process.sim_one_contact(start_t,
+                                                                     end_t,
+                                                                     g_dist,
+                                                                     b,
+                                                                     rng=0)
+
+            self.assertEqual(is_inf_1, is_inf_2)
+            self.assertEqual(inf_time_1, inf_time_2)
 
 # TODO: test results are the same with same rng (and results diff in loop?)
 # TODO: test bad inputs
