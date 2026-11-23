@@ -380,7 +380,64 @@ def sim_one_index_case(df, alpha, beta, psi, b, rng=None):
 
 
 def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
-    # TODO: add documentation
+    """
+    Simulates N index cases, including generating their contacts and \
+    simulating whether or not each contact was infected and their infection \
+    times.
+
+    Parameters
+    ----------
+    N : int
+        The number of index cases to simulate. Must be positive.
+
+    d : int
+        The number of contacts an index case has at any given time, which is \
+        assumed to be constant. Must be positive.
+
+    lam : float
+        The turnover rate (lambda) at which contacts are replaced by new \
+        contacts. Must be positive.
+
+    alpha : float
+        The shape parameter of the overall population generation interval \
+        distribution (which is assumed to be gamma distributed). Must be \
+        positive.
+
+    beta : float
+        The rate parameter of the overall population generation interval \
+        distribution. Note that beta is equal to 1/scale in the scale \
+        parameterization of the gamma distribution. Must be positive.
+
+    psi : float
+        The burstiness parameter. Must be in the interval (0,1]. The smaller \
+        psi is, the more bursty the infection is.
+
+    b : float
+        Infectiousness scaling parameter, which you can tune to obtain the \
+        desired reproduction number. Must be positive.
+
+    t_max : float (optional)
+        The length of time the simulation is run for each index case. Must be \
+        positive. Defaults to None, in which case the function calculates the \
+        time required to cover 99.9% of the infectiousness distribution and \
+        uses that as t_max.
+
+    rng : Numpy Random Generator (optional)
+        A random number generator to ensure reproducibility. Defaults to \
+        None, in which case you will get different outputs each time you run \
+        the function.
+
+    Returns
+    -------
+    all_cases : Numpy data frame
+        Numpy data frame with columns "index_case_id", "contact_id", \
+        "start_contact", "end_contact", "is_inf", and "inf_time". Each row of \
+        this data frame represents a contact of an index case. The columns \
+        "start_contact" and "end_contact" store the starting time and ending \
+        time of the contact, "is_inf" indicates whether that contact was \
+        infected or not, and "inf_time" gives their time of infection if so \
+        (if not infected, "inf_time" is nan).
+    """
 
     if isinstance(N, bool) or not isinstance(N, (int, np.integer)):
         sys.exit("Invalid input: N must be a positive integer.")
@@ -432,13 +489,31 @@ def sim_N_index_cases(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
         all_cases_list.append(new_df)
 
     all_cases = pd.concat(all_cases_list, ignore_index=True)
-    all_cases.rename({"id": "contact_id"})
+    all_cases = all_cases.rename(columns={"id": "contact_id"})
 
     return all_cases
 
 
 def calc_R_from_df(df):
-    # TODO: add documentation
+    '''
+    Calculates the basic reproduction number R (average new infections caused \
+    by one index case) from a data frame of index case contacts and whether \
+    or not they were infected.
+
+    Parameters
+    ----------
+    df : Numpy data frame
+        Numpy data frame index cases and their contacts, including whether or \
+        not they were infected. Must include the columns "index_case_id", \
+        with ids of the index cases, and "is_inf", with booleans that \
+        indicate whether or not each contact was infected.
+
+    Returns
+    -------
+    R : float
+        An estimate of the basic repoduction number, the mean number of new \
+        infections caused by the index cases in df.
+    '''
 
     if not isinstance(df, pd.DataFrame):
         sys.exit("Invalid input: df must be a data frame.")
@@ -457,7 +532,60 @@ def calc_R_from_df(df):
 
 
 def calc_R(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
-    # TODO: add documentation
+    '''
+    Calculates the basic reproduction number R (average new infections caused \
+    by one index case) for a set of parameters by simulating contacts and \
+    infections.
+
+    Parameters
+    ----------
+    N : int
+        The number of index cases to simulate. Must be positive.
+
+    d : int
+        The number of contacts an index case has at any given time, which is \
+        assumed to be constant. Must be positive.
+
+    lam : float
+        The turnover rate (lambda) at which contacts are replaced by new \
+        contacts. Must be positive.
+
+    alpha : float
+        The shape parameter of the overall population generation interval \
+        distribution (which is assumed to be gamma distributed). Must be \
+        positive.
+
+    beta : float
+        The rate parameter of the overall population generation interval \
+        distribution. Note that beta is equal to 1/scale in the scale \
+        parameterization of the gamma distribution. Must be positive.
+
+    psi : float
+        The burstiness parameter. Must be in the interval (0,1]. The smaller \
+        psi is, the more bursty the infection is.
+
+    b : float
+        Infectiousness scaling parameter, which you can tune to obtain the \
+        desired reproduction number. Must be positive.
+
+    t_max : float (optional)
+        The length of time the simulation is run for each index case. Must be \
+        positive. Defaults to None, in which case the function calculates the \
+        time required to cover 99.9% of the infectiousness distribution and \
+        uses that as t_max.
+
+    rng : Numpy Random Generator (optional)
+        A random number generator to ensure reproducibility. Defaults to \
+        None, in which case you will get different outputs each time you run \
+        the function.
+
+    Returns
+    -------
+    R : float
+        An estimate of the basic repoduction number, the mean number of new \
+        infections caused by each index case.
+    '''
+
     if isinstance(N, bool) or not isinstance(N, (int, np.integer)):
         sys.exit("Invalid input: N must be a positive integer.")
     if N < 1:
@@ -501,7 +629,71 @@ def calc_R(N, d, lam, alpha, beta, psi, b, t_max=None, rng=None):
 def determine_b(N, d, lam, alpha, beta, psi, R,
                 start_b=2, tol=0.1, maxruns=10,
                 t_max=None, rng=None):
-    # TODO: add documentation
+    '''
+    Estimates the infectiousness scaling parameter b required to obtain the \
+    desired basic reproduction number R (with the other given parameters) \
+    using a binary search algorithm and the function calc_R. Since there is \
+    some randomness in calc_R, this estimate will not be precise, but it will \
+    generally work better for larger N.
+
+    Parameters
+    ----------
+    N : int
+        The number of index cases to simulate. Must be positive.
+
+    d : int
+        The number of contacts an index case has at any given time, which is \
+        assumed to be constant. Must be positive.
+
+    lam : float
+        The turnover rate (lambda) at which contacts are replaced by new \
+        contacts. Must be positive.
+
+    alpha : float
+        The shape parameter of the overall population generation interval \
+        distribution (which is assumed to be gamma distributed). Must be \
+        positive.
+
+    beta : float
+        The rate parameter of the overall population generation interval \
+        distribution. Note that beta is equal to 1/scale in the scale \
+        parameterization of the gamma distribution. Must be positive.
+
+    psi : float
+        The burstiness parameter. Must be in the interval (0,1]. The smaller \
+        psi is, the more bursty the infection is.
+
+    R : float
+        Desired basic reproduction number. Must be positive.
+
+    start_b : float (optional)
+        Initial guess for the value of b. Must be positive. Defaults to 2,
+
+    tol : float (optional)
+        The tolerance for how close the value of calc_R must be to the \
+        desired value of R. Must be positive. Defaults to 0.1.
+
+    maxruns : int (optional)
+        Maximum steps of the binary search algorithm to run. Must be \
+        positive. Defaults to 10.
+
+    t_max : float (optional)
+        The length of time the simulation is run for each index case. Must be \
+        positive. Defaults to None, in which case the function calculates the \
+        time required to cover 99.9% of the infectiousness distribution and \
+        uses that as t_max.
+
+    rng : Numpy Random Generator (optional)
+        A random number generator to ensure reproducibility. Defaults to \
+        None, in which case you will get different outputs each time you run \
+        the function.
+
+    Returns
+    -------
+    b : float
+        An estimate of the infectiousness scaling parameter b required to \
+        obtain a basic reproduction number of R, given the other parameters.
+    '''
 
     if isinstance(N, bool) or not isinstance(N, (int, np.integer)):
         sys.exit("Invalid input: N must be a positive integer.")
@@ -605,6 +797,9 @@ def main():
     lam = 2
 
     R = 5
+
+    cases = sim_N_index_cases(N, d, lam, alpha, beta, psi, b, rng=rng)
+    print(cases)
 
     b = determine_b(N, d, lam, alpha, beta, psi, R, tol=0.05, rng=rng)
     print(b)
