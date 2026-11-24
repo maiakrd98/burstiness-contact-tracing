@@ -2,6 +2,7 @@ import sys
 import unittest
 import random
 import numpy as np
+import pandas as pd
 from scipy.stats import gamma
 import scipy.special as sc
 sys.path.append("src")  # noqa
@@ -756,7 +757,213 @@ class TestSimOneContact(unittest.TestCase):
                                  str(cm.exception))
 
 
-# TODO: test sim one index case
+class TestSimOneIndexCase(unittest.TestCase):
+
+    def _get_df(self):
+        '''Generates a contact data frame to use in tests'''
+        contacts = [[1, 0, 2.3],
+                    [2, 0, 3.1],
+                    [3, 2.3, 4.7],
+                    [4, 3.1, 4.6],
+                    [5, 4.6, 6],
+                    [6, 4.7, 6]]
+        df = pd.DataFrame(contacts,
+                          columns=["id", "start_contact", "end_contact"])
+        return df
+
+    def test_correct_columns(self):
+        rng = np.random.default_rng(0)
+        df = self._get_df()
+        for _ in range(10):
+            alpha = rng.uniform(1, 5)
+            beta = rng.uniform(1, 5)
+            psi = rng.uniform(0.01, 1)
+            b = rng.uniform(1, 3)
+
+            new_df = infection_process.sim_one_index_case(df,
+                                                          alpha,
+                                                          beta,
+                                                          psi,
+                                                          b,
+                                                          rng=rng)
+
+            self.assertTrue("start_contact" in new_df.columns.values.tolist())
+            self.assertTrue("end_contact" in new_df.columns.values.tolist())
+            self.assertTrue("is_inf" in new_df.columns.values.tolist())
+            self.assertTrue("inf_time" in new_df.columns.values.tolist())
+
+    def test_correct_data_types(self):
+        rng = np.random.default_rng(0)
+        df = self._get_df()
+        for _ in range(10):
+            alpha = rng.uniform(1, 5)
+            beta = rng.uniform(1, 5)
+            psi = rng.uniform(0.01, 1)
+            b = rng.uniform(1, 3)
+
+            new_df = infection_process.sim_one_index_case(df,
+                                                          alpha,
+                                                          beta,
+                                                          psi,
+                                                          b,
+                                                          rng=rng)
+
+            self.assertTrue(new_df['inf_time'].dtype == float)
+            self.assertTrue(new_df['is_inf'].dtype == bool)
+
+    def test_inf_times_in_contact(self):
+        rng = np.random.default_rng(0)
+        df = self._get_df()
+        for _ in range(10):
+            alpha = rng.uniform(1, 5)
+            beta = rng.uniform(1, 5)
+            psi = rng.uniform(0.01, 1)
+            b = rng.uniform(1, 3)
+
+            f = infection_process.sim_one_index_case(df,
+                                                     alpha,
+                                                     beta,
+                                                     psi,
+                                                     b,
+                                                     rng=rng)
+
+            for i in range(len(f)):
+                if f['is_inf'][i]:
+                    self.assertTrue(f['start_contact'][i] <= f['inf_time'][i])
+                    self.assertTrue(f['end_contact'][i] >= f['inf_time'][i])
+
+    def test_deterministic_with_same_seed(self):
+        rng = np.random.default_rng(0)
+        df = self._get_df()
+        for _ in range(10):
+            alpha = rng.uniform(1, 5)
+            beta = rng.uniform(1, 5)
+            psi = rng.uniform(0.01, 1)
+            b = rng.uniform(1, 3)
+
+            new_df_1 = infection_process.sim_one_index_case(df,
+                                                            alpha,
+                                                            beta,
+                                                            psi,
+                                                            b,
+                                                            rng=0)
+            new_df_2 = infection_process.sim_one_index_case(df,
+                                                            alpha,
+                                                            beta,
+                                                            psi,
+                                                            b,
+                                                            rng=0)
+
+            self.assertTrue(new_df_1.equals(new_df_2))
+
+    def test_bad_df(self):
+        contacts = [[1, 0, 2.3],
+                    [2, 0, 3.1]]
+        df_no_start = pd.DataFrame(contacts,
+                                   columns=["id", "hi", "end_contact"])
+        df_no_end = pd.DataFrame(contacts,
+                                 columns=["id", "start_contact", "hi"])
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        b = 2
+
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.sim_one_index_case(7,
+                                                 alpha,
+                                                 beta,
+                                                 psi,
+                                                 b)
+        self.assertEqual("Invalid input: df must be a data frame.",
+                         str(cm.exception))
+
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.sim_one_index_case(df_no_start,
+                                                 alpha,
+                                                 beta,
+                                                 psi,
+                                                 b)
+        self.assertEqual("Invalid input: df must contain column "
+                         "'start_contact'",
+                         str(cm.exception))
+
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.sim_one_index_case(df_no_end,
+                                                 alpha,
+                                                 beta,
+                                                 psi,
+                                                 b)
+        self.assertEqual("Invalid input: df must contain column 'end_contact'",
+                         str(cm.exception))
+
+    def test_bad_alpha(self):
+        df = self._get_df()
+        beta = 1
+        psi = 0.5
+        b = 2
+        for bad_alpha in [-1, 0, False, "hi"]:
+            with self.subTest(psi=bad_alpha):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_one_index_case(df,
+                                                         bad_alpha,
+                                                         beta,
+                                                         psi,
+                                                         b)
+                self.assertEqual("Invalid input: alpha must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_beta(self):
+        df = self._get_df()
+        alpha = 2
+        psi = 0.5
+        b = 2
+        for bad_beta in [-1, 0, False, "hi"]:
+            with self.subTest(psi=bad_beta):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_one_index_case(df,
+                                                         alpha,
+                                                         bad_beta,
+                                                         psi,
+                                                         b)
+                self.assertEqual("Invalid input: beta must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_psi(self):
+        df = self._get_df()
+        alpha = 2
+        beta = 1
+        b = 2
+        for bad_psi in [-1, 0, False, 4, "hi"]:
+            with self.subTest(psi=bad_psi):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_one_index_case(df,
+                                                         alpha,
+                                                         beta,
+                                                         bad_psi,
+                                                         b)
+                self.assertEqual("Invalid input: psi must be a number "
+                                 "in the interval (0,1].",
+                                 str(cm.exception))
+
+    def test_bad_b(self):
+        df = self._get_df()
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        for bad_b in [-1, 0, False, "hi"]:
+            with self.subTest(b=bad_b):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_one_index_case(df,
+                                                         alpha,
+                                                         beta,
+                                                         psi,
+                                                         bad_b)
+                self.assertEqual("Invalid input: b must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
 # TODO: test sim N index cases
 # TODO: test get R from df (with small df and known R)
 # TODO: test get R
