@@ -1261,8 +1261,69 @@ class TestSimNIndexCases(unittest.TestCase):
                                  "number.",
                                  str(cm.exception))
 
+
+class TestCalcRFromDf(unittest.TestCase):
+
+    def test_known_R(self):
+        data = [[0, True],
+                [0, False],
+                [1, True],
+                [1, False],
+                [1, True],
+                [2, True],
+                [2, True],
+                [3, True]]
+        df = pd.DataFrame(data, columns=['index_case_id', 'is_inf'])
+        R = infection_process.calc_R_from_df(df)
+        self.assertAlmostEqual(R, 1.5)
+
+    def test_known_prob_R(self):
+        rng = np.random.default_rng(0)
+        for _ in range(5):
+            data = []
+            prob = rng.uniform(0, 1)
+            for i in range(1000):
+                is_inf = rng.choice([True, False], p=[prob, 1-prob])
+                data.append([i, is_inf])
+            df = pd.DataFrame(data, columns=['index_case_id', 'is_inf'])
+            R = infection_process.calc_R_from_df(df)
+            self.assertAlmostEqual(R, prob, places=1)
+
+    def test_bad_df(self):
+        for bad_df in [-1, 0, False, "hi", [1, 2, 3]]:
+            with self.subTest(df=bad_df):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_R_from_df(bad_df)
+                self.assertEqual("Invalid input: df must be a data frame.",
+                                 str(cm.exception))
+
+        data = [[1, True, 2.3],
+                [2, False, 3.1]]
+        df_no_id = pd.DataFrame(data, columns=['h', 'is_inf', 'inf_time'])
+        df_no_is_inf = pd.DataFrame(data,
+                                    columns=['index_case_id', 'h', 'inf_time'])
+        df_is_inf_not_bool = pd.DataFrame(data,
+                                          columns=['index_case_id',
+                                                   'h',
+                                                   'is_inf'])
+
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.calc_R_from_df(df_no_id)
+        self.assertEqual("Invalid input: df must contain column "
+                         "'index_case_id'",
+                         str(cm.exception))
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.calc_R_from_df(df_no_is_inf)
+        self.assertEqual("Invalid input: df must contain column 'is_inf'",
+                         str(cm.exception))
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.calc_R_from_df(df_is_inf_not_bool)
+        self.assertEqual("Invalid input: 'is_inf' column must contain "
+                         "booleans",
+                         str(cm.exception))
+
 # TODO: test get R from df (with small df and known R)
-# TODO: test get R
+# TODO: test get R (increasing b increases R)
 # TODO: test determine b
 
 
