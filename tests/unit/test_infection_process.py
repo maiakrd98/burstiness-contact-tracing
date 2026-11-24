@@ -171,6 +171,75 @@ class TestCalcForceOfInf(unittest.TestCase):
 
             self.assertAlmostEqual(force, 0, places=5)
 
+    def test_bad_start_t(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        end_t = 5
+        b = 2
+        for bad_start_t in [-1, False, "hi"]:
+            with self.subTest(start_t=bad_start_t):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_force_of_inf(bad_start_t,
+                                                        end_t,
+                                                        gamma_dist,
+                                                        b)
+                self.assertEqual("Invalid input: start_t must be a "
+                                 "nonnegative number.",
+                                 str(cm.exception))
+
+    def test_bad_end_t(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        start_t = 5
+        b = 2
+        for bad_end_t in [-1, False, "hi"]:
+            with self.subTest(end_t=bad_end_t):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_force_of_inf(start_t,
+                                                        bad_end_t,
+                                                        gamma_dist,
+                                                        b)
+                self.assertEqual("Invalid input: end_t must be a nonnegative "
+                                 "number.",
+                                 str(cm.exception))
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.calc_force_of_inf(start_t,
+                                                4,
+                                                gamma_dist,
+                                                b)
+        self.assertEqual("Invalid input: end_t must be greater than or equal "
+                         "to start_t.",
+                         str(cm.exception))
+
+    def test_bad_b(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        start_t = 2
+        end_t = 5
+        for bad_b in [-1, 0, False, "hi"]:
+            with self.subTest(b=bad_b):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_force_of_inf(start_t,
+                                                        end_t,
+                                                        gamma_dist,
+                                                        bad_b)
+                self.assertEqual("Invalid input: b must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_gi_dist(self):
+        start_t = 2
+        end_t = 5
+        b = 2
+        for bad_gi_dist in [-1, 1.3, False, "hi"]:
+            with self.subTest(gi_dist=bad_gi_dist):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_force_of_inf(start_t,
+                                                        end_t,
+                                                        bad_gi_dist,
+                                                        b)
+                self.assertEqual("Invalid input: gi_dist must be a "
+                                 "scipy.stats frozen continuous random "
+                                 "variable object.",
+                                 str(cm.exception))
+
 
 class TestCalcProbOfInf(unittest.TestCase):
 
@@ -239,6 +308,75 @@ class TestCalcProbOfInf(unittest.TestCase):
 
             # probability should approach 1 - exp(-b)
             self.assertAlmostEqual(prob, 1 - np.exp(-b))
+
+    def test_bad_start_t(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        end_t = 5
+        b = 2
+        for bad_start_t in [-1, False, "hi"]:
+            with self.subTest(start_t=bad_start_t):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_prob_of_inf(bad_start_t,
+                                                       end_t,
+                                                       gamma_dist,
+                                                       b)
+                self.assertEqual("Invalid input: start_t must be a "
+                                 "nonnegative number.",
+                                 str(cm.exception))
+
+    def test_bad_end_t(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        start_t = 5
+        b = 2
+        for bad_end_t in [-1, False, "hi"]:
+            with self.subTest(end_t=bad_end_t):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_prob_of_inf(start_t,
+                                                       bad_end_t,
+                                                       gamma_dist,
+                                                       b)
+                self.assertEqual("Invalid input: end_t must be a nonnegative "
+                                 "number.",
+                                 str(cm.exception))
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.calc_prob_of_inf(start_t,
+                                               4,
+                                               gamma_dist,
+                                               b)
+        self.assertEqual("Invalid input: end_t must be greater than or equal "
+                         "to start_t.",
+                         str(cm.exception))
+
+    def test_bad_b(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        start_t = 2
+        end_t = 5
+        for bad_b in [-1, 0, False, "hi"]:
+            with self.subTest(b=bad_b):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_prob_of_inf(start_t,
+                                                       end_t,
+                                                       gamma_dist,
+                                                       bad_b)
+                self.assertEqual("Invalid input: b must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_gi_dist(self):
+        start_t = 2
+        end_t = 5
+        b = 2
+        for bad_gi_dist in [-1, 1.3, False, "hi"]:
+            with self.subTest(gi_dist=bad_gi_dist):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_prob_of_inf(start_t,
+                                                       end_t,
+                                                       bad_gi_dist,
+                                                       b)
+                self.assertEqual("Invalid input: gi_dist must be a "
+                                 "scipy.stats frozen continuous random "
+                                 "variable object.",
+                                 str(cm.exception))
 
 
 class TestCalcInfTime(unittest.TestCase):
@@ -334,6 +472,53 @@ class TestCalcInfTime(unittest.TestCase):
                                                          rng=seed_2)
 
             self.assertNotEqual(inf_time_1, inf_time_2)
+
+    def test_bad_start_t(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        end_t = 5
+        for bad_start_t in [-1, False, "hi"]:
+            with self.subTest(start_t=bad_start_t):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_inf_time(bad_start_t,
+                                                    end_t,
+                                                    gamma_dist)
+                self.assertEqual("Invalid input: start_t must be a "
+                                 "nonnegative number.",
+                                 str(cm.exception))
+
+    def test_bad_end_t(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        start_t = 5
+        for bad_end_t in [-1, False, "hi"]:
+            with self.subTest(end_t=bad_end_t):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_inf_time(start_t,
+                                                    bad_end_t,
+                                                    gamma_dist)
+                self.assertEqual("Invalid input: end_t must be a nonnegative "
+                                 "number.",
+                                 str(cm.exception))
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.calc_inf_time(start_t,
+                                            4,
+                                            gamma_dist)
+        self.assertEqual("Invalid input: end_t must be greater than or equal "
+                         "to start_t.",
+                         str(cm.exception))
+
+    def test_bad_gi_dist(self):
+        start_t = 2
+        end_t = 5
+        for bad_gi_dist in [-1, 1.3, False, "hi"]:
+            with self.subTest(gi_dist=bad_gi_dist):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.calc_inf_time(start_t,
+                                                    end_t,
+                                                    bad_gi_dist)
+                self.assertEqual("Invalid input: gi_dist must be a "
+                                 "scipy.stats frozen continuous random "
+                                 "variable object.",
+                                 str(cm.exception))
 
 
 class TestSimOneContact(unittest.TestCase):
@@ -501,8 +686,76 @@ class TestSimOneContact(unittest.TestCase):
             self.assertEqual(is_inf_1, is_inf_2)
             self.assertEqual(inf_time_1, inf_time_2)
 
-# TODO: test results are the same with same rng (and results diff in loop?)
-# TODO: test bad inputs
+    def test_bad_start_t(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        end_t = 5
+        b = 2
+        for bad_start_t in [-1, False, "hi"]:
+            with self.subTest(start_t=bad_start_t):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_one_contact(bad_start_t,
+                                                      end_t,
+                                                      gamma_dist,
+                                                      b)
+                self.assertEqual("Invalid input: start_t must be a "
+                                 "nonnegative number.",
+                                 str(cm.exception))
+
+    def test_bad_end_t(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        start_t = 5
+        b = 2
+        for bad_end_t in [-1, False, "hi"]:
+            with self.subTest(end_t=bad_end_t):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_one_contact(start_t,
+                                                      bad_end_t,
+                                                      gamma_dist,
+                                                      b)
+                self.assertEqual("Invalid input: end_t must be a nonnegative "
+                                 "number.",
+                                 str(cm.exception))
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.sim_one_contact(start_t,
+                                              4,
+                                              gamma_dist,
+                                              b)
+        self.assertEqual("Invalid input: end_t must be greater than or equal "
+                         "to start_t.",
+                         str(cm.exception))
+
+    def test_bad_gi_dist(self):
+        start_t = 2
+        end_t = 5
+        b = 2
+        for bad_gi_dist in [-1, 1.3, False, "hi"]:
+            with self.subTest(gi_dist=bad_gi_dist):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_one_contact(start_t,
+                                                      end_t,
+                                                      bad_gi_dist,
+                                                      b)
+                self.assertEqual("Invalid input: gi_dist must be a "
+                                 "scipy.stats frozen continuous random "
+                                 "variable object.",
+                                 str(cm.exception))
+
+    def test_bad_b(self):
+        gamma_dist = gamma(a=2, loc=1, scale=1)
+        start_t = 2
+        end_t = 5
+        for bad_b in [-1, 0, False, "hi"]:
+            with self.subTest(b=bad_b):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_one_contact(start_t,
+                                                      end_t,
+                                                      gamma_dist,
+                                                      bad_b)
+                self.assertEqual("Invalid input: b must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+
 # TODO: test sim one index case
 # TODO: test sim N index cases
 # TODO: test get R from df (with small df and known R)
