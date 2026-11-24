@@ -750,7 +750,6 @@ def determine_b(N, d, lam, alpha, beta, psi, R,
     if n == 9 and R_over <= R:
         sys.exit("Could not get a large enough R value in the alloted time. "
                  "Try entering a larger value for start_b.")
-    # TODO: test all 3 situations: n<9, n==9 but R_over is big enough, error
 
     # binary search
     low_b = 0
@@ -772,8 +771,6 @@ def determine_b(N, d, lam, alpha, beta, psi, R,
 
     sys.exit("Could not find b in the allotted runs. "
              "Try increasing maxruns or increading tol.")
-    # TODO: what happens if we skip the "true" value because of randomness??
-    # Issues if tol is too small...
 
 
 def main():

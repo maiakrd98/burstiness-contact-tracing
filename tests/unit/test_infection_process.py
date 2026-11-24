@@ -1621,8 +1621,398 @@ class TestCalcR(unittest.TestCase):
                                  str(cm.exception))
 
 
-# TODO: test get R (increasing b increases R)
-# TODO: test determine b
+class TestDetermineB(unittest.TestCase):
+
+    def test_b_increases_with_R(self):
+        rng = np.random.default_rng(0)
+        N = 100
+        d = rng.integers(1, 10)
+        lam = rng.uniform(0, 3)
+        alpha = rng.uniform(1, 5)
+        beta = rng.uniform(1, 5)
+        psi = rng.uniform(0.01, 1)
+        R_1 = rng.uniform(0, 1)
+        R_2 = R_1 + rng.uniform(2, 3)
+
+        b_1 = infection_process.determine_b(N,
+                                            d,
+                                            lam,
+                                            alpha,
+                                            beta,
+                                            psi,
+                                            R_1,
+                                            rng=rng)
+        b_2 = infection_process.determine_b(N,
+                                            d,
+                                            lam,
+                                            alpha,
+                                            beta,
+                                            psi,
+                                            R_2,
+                                            rng=rng)
+
+        self.assertTrue(b_1 < b_2)
+
+    def test_lam_very_small(self):
+        rng = np.random.default_rng(0)
+        for _ in range(5):
+            N = 200
+            d = rng.integers(1, 10)
+            lam = 0.0001
+            alpha = rng.uniform(1, 5)
+            beta = rng.uniform(1, 5)
+            psi = rng.uniform(0.01, 1)
+            R = rng.uniform(1, 2)
+
+            b = infection_process.determine_b(N,
+                                              d,
+                                              lam,
+                                              alpha,
+                                              beta,
+                                              psi,
+                                              R,
+                                              start_b=4,
+                                              rng=rng)
+
+            self.assertAlmostEqual(b, -np.log(1-R/d), places=1)
+
+    def test_known_b(self):
+        rng = np.random.default_rng(0)
+        N = 100
+        d = 4
+        lam = 2
+        alpha = 2.39
+        beta = 0.336
+        psi = 0.1
+        R = 6
+
+        b = infection_process.determine_b(N,
+                                          d,
+                                          lam,
+                                          alpha,
+                                          beta,
+                                          psi,
+                                          R,
+                                          start_b=0.01,
+                                          rng=rng)
+
+        self.assertAlmostEqual(b, 4, delta=0.2)
+
+    def test_start_b_too_small(self):
+        rng = np.random.default_rng(0)
+        N = 100
+        d = 4
+        lam = 2
+        alpha = 2.39
+        beta = 0.336
+        psi = 0.1
+        R = 6
+
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.determine_b(N,
+                                          d,
+                                          lam,
+                                          alpha,
+                                          beta,
+                                          psi,
+                                          R,
+                                          start_b=0.0001,
+                                          rng=rng)
+        self.assertEqual("Could not get a large enough R value in the alloted "
+                         "time. Try entering a larger value for start_b.",
+                         str(cm.exception))
+
+    def test_maxruns_too_small(self):
+        rng = np.random.default_rng(0)
+        N = 100
+        d = 4
+        lam = 2
+        alpha = 2.39
+        beta = 0.336
+        psi = 0.1
+        R = 6
+
+        with self.assertRaises(SystemExit) as cm:
+            infection_process.determine_b(N,
+                                          d,
+                                          lam,
+                                          alpha,
+                                          beta,
+                                          psi,
+                                          R,
+                                          maxruns=1,
+                                          rng=rng)
+        self.assertEqual("Could not find b in the allotted runs. "
+                         "Try increasing maxruns or increading tol.",
+                         str(cm.exception))
+
+    def test_deterministic_with_same_seed(self):
+        rng = np.random.default_rng(0)
+        N = rng.integers(10, 100)
+        d = rng.integers(1, 10)
+        lam = rng.uniform(0, 3)
+        alpha = rng.uniform(1, 5)
+        beta = rng.uniform(1, 5)
+        psi = rng.uniform(0.01, 1)
+        R = rng.uniform(1, 3)
+
+        b_1 = infection_process.determine_b(N,
+                                            d,
+                                            lam,
+                                            alpha,
+                                            beta,
+                                            psi,
+                                            R,
+                                            rng=0)
+        b_2 = infection_process.determine_b(N,
+                                            d,
+                                            lam,
+                                            alpha,
+                                            beta,
+                                            psi,
+                                            R,
+                                            rng=0)
+
+        self.assertEqual(b_1, b_2)
+
+    def test_bad_N(self):
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        R = 2
+        for bad_N in [-1, 0, 1.3, False, "hi"]:
+            with self.subTest(N=bad_N):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(bad_N,
+                                                  d,
+                                                  lam,
+                                                  alpha,
+                                                  beta,
+                                                  psi,
+                                                  R)
+                self.assertEqual("Invalid input: N must be a positive "
+                                 "integer.",
+                                 str(cm.exception))
+
+    def test_bad_d(self):
+        N = 10
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        R = 2
+        for bad_d in [-1, 0, 1.3, False, "hi"]:
+            with self.subTest(d=bad_d):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  bad_d,
+                                                  lam,
+                                                  alpha,
+                                                  beta,
+                                                  psi,
+                                                  R)
+                self.assertEqual("Invalid input: d must be a positive "
+                                 "integer.",
+                                 str(cm.exception))
+
+    def test_bad_lam(self):
+        N = 10
+        d = 4
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        R = 2
+        for bad_lam in [-1, 0, False, "hi"]:
+            with self.subTest(lam=bad_lam):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  d,
+                                                  bad_lam,
+                                                  alpha,
+                                                  beta,
+                                                  psi,
+                                                  R)
+                self.assertEqual("Invalid input: lam must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_alpha(self):
+        N = 10
+        d = 4
+        lam = 2
+        beta = 1
+        psi = 0.5
+        R = 2
+        for bad_alpha in [-1, 0, False, "hi"]:
+            with self.subTest(alpha=bad_alpha):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  d,
+                                                  lam,
+                                                  bad_alpha,
+                                                  beta,
+                                                  psi,
+                                                  R)
+                self.assertEqual("Invalid input: alpha must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_beta(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        psi = 0.5
+        R = 2
+        for bad_beta in [-1, 0, False, "hi"]:
+            with self.subTest(beta=bad_beta):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  d,
+                                                  lam,
+                                                  alpha,
+                                                  bad_beta,
+                                                  psi,
+                                                  R)
+                self.assertEqual("Invalid input: beta must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_psi(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        R = 2
+        for bad_psi in [-1, 0, 4.1, False, "hi"]:
+            with self.subTest(psi=bad_psi):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  d,
+                                                  lam,
+                                                  alpha,
+                                                  beta,
+                                                  bad_psi,
+                                                  R)
+                self.assertEqual("Invalid input: psi must be a number "
+                                 "in the interval (0,1].",
+                                 str(cm.exception))
+
+    def test_bad_R(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        for bad_R in [-1, 0, False, "hi"]:
+            with self.subTest(R=bad_R):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  d,
+                                                  lam,
+                                                  alpha,
+                                                  beta,
+                                                  psi,
+                                                  bad_R)
+                self.assertEqual("Invalid input: R must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_start_b(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        R = 2
+        for bad_start_b in [-1, 0, False, "hi"]:
+            with self.subTest(start_b=bad_start_b):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  d,
+                                                  lam,
+                                                  alpha,
+                                                  beta,
+                                                  psi,
+                                                  R,
+                                                  start_b=bad_start_b)
+                self.assertEqual("Invalid input: start_b must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_tol(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        R = 2
+        for bad_tol in [-1, 0, False, "hi"]:
+            with self.subTest(tol=bad_tol):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  d,
+                                                  lam,
+                                                  alpha,
+                                                  beta,
+                                                  psi,
+                                                  R,
+                                                  tol=bad_tol)
+                self.assertEqual("Invalid input: tol must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_maxruns(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        R = 2
+        for bad_maxruns in [-1, 0, 2.5, False, "hi"]:
+            with self.subTest(maxruns=bad_maxruns):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  d,
+                                                  lam,
+                                                  alpha,
+                                                  beta,
+                                                  psi,
+                                                  R,
+                                                  maxruns=bad_maxruns)
+                self.assertEqual("Invalid input: maxruns must be a positive "
+                                 "integer.",
+                                 str(cm.exception))
+
+    def test_bad_t_max(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        R = 2
+        for bad_t_max in [-1, 0, False, "hi"]:
+            with self.subTest(t_max=bad_t_max):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.determine_b(N,
+                                                  d,
+                                                  lam,
+                                                  alpha,
+                                                  beta,
+                                                  psi,
+                                                  R,
+                                                  t_max=bad_t_max)
+                self.assertEqual("Invalid input: t_max must be a positive "
+                                 "number.",
+                                 str(cm.exception))
 
 
 if __name__ == "__main__":
