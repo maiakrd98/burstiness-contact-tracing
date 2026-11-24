@@ -964,7 +964,303 @@ class TestSimOneIndexCase(unittest.TestCase):
                                  "number.",
                                  str(cm.exception))
 
-# TODO: test sim N index cases
+
+class TestSimNIndexCases(unittest.TestCase):
+
+    def test_correct_number_of_index_cases(self):
+        rng = np.random.default_rng(0)
+        for _ in range(10):
+            N = rng.integers(10, 100)
+            d = rng.integers(1, 10)
+            lam = rng.uniform(0, 3)
+            alpha = rng.uniform(1, 5)
+            beta = rng.uniform(1, 5)
+            psi = rng.uniform(0.01, 1)
+            b = rng.uniform(1, 3)
+
+            new_df = infection_process.sim_N_index_cases(N,
+                                                         d,
+                                                         lam,
+                                                         alpha,
+                                                         beta,
+                                                         psi,
+                                                         b,
+                                                         rng=rng)
+
+            self.assertEqual(len(set(new_df['index_case_id'])), N)
+
+    def test_correct_column_names(self):
+        rng = np.random.default_rng(0)
+        for _ in range(10):
+            N = rng.integers(10, 100)
+            d = rng.integers(1, 10)
+            lam = rng.uniform(0, 3)
+            alpha = rng.uniform(1, 5)
+            beta = rng.uniform(1, 5)
+            psi = rng.uniform(0.01, 1)
+            b = rng.uniform(1, 3)
+
+            new_df = infection_process.sim_N_index_cases(N,
+                                                         d,
+                                                         lam,
+                                                         alpha,
+                                                         beta,
+                                                         psi,
+                                                         b,
+                                                         rng=rng)
+
+            self.assertTrue("index_case_id" in new_df.columns.values.tolist())
+            self.assertTrue("contact_id" in new_df.columns.values.tolist())
+            self.assertTrue("start_contact" in new_df.columns.values.tolist())
+            self.assertTrue("end_contact" in new_df.columns.values.tolist())
+            self.assertTrue("is_inf" in new_df.columns.values.tolist())
+            self.assertTrue("inf_time" in new_df.columns.values.tolist())
+
+    def test_t_max_correct(self):
+        rng = np.random.default_rng(0)
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 3
+        psi = 0.5
+        b = 2
+
+        new_df = infection_process.sim_N_index_cases(N,
+                                                     d,
+                                                     lam,
+                                                     alpha,
+                                                     beta,
+                                                     psi,
+                                                     b,
+                                                     rng=rng)
+
+        self.assertAlmostEqual(max(new_df['end_contact']), 3.0778, places=4)
+
+    def test_stops_at_t_max(self):
+        rng = np.random.default_rng(0)
+        for _ in range(10):
+            N = rng.integers(10, 100)
+            d = rng.integers(1, 10)
+            lam = rng.uniform(0, 3)
+            alpha = rng.uniform(1, 5)
+            beta = rng.uniform(1, 5)
+            psi = rng.uniform(0.01, 1)
+            b = rng.uniform(1, 3)
+            t_max = rng.uniform(1, 10)
+
+            new_df = infection_process.sim_N_index_cases(N,
+                                                         d,
+                                                         lam,
+                                                         alpha,
+                                                         beta,
+                                                         psi,
+                                                         b,
+                                                         t_max=t_max,
+                                                         rng=rng)
+
+            self.assertAlmostEqual(max(new_df['end_contact']), t_max)
+
+    def test_deterministic_with_same_seed(self):
+        rng = np.random.default_rng(0)
+        for _ in range(10):
+            N = rng.integers(10, 100)
+            d = rng.integers(1, 10)
+            lam = rng.uniform(0, 3)
+            alpha = rng.uniform(1, 5)
+            beta = rng.uniform(1, 5)
+            psi = rng.uniform(0.01, 1)
+            b = rng.uniform(1, 3)
+
+            new_df_1 = infection_process.sim_N_index_cases(N,
+                                                           d,
+                                                           lam,
+                                                           alpha,
+                                                           beta,
+                                                           psi,
+                                                           b,
+                                                           rng=0)
+            new_df_2 = infection_process.sim_N_index_cases(N,
+                                                           d,
+                                                           lam,
+                                                           alpha,
+                                                           beta,
+                                                           psi,
+                                                           b,
+                                                           rng=0)
+
+            self.assertTrue(new_df_1.equals(new_df_2))
+
+    def test_bad_N(self):
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        b = 2
+        for bad_N in [-1, 0, 1.3, False, "hi"]:
+            with self.subTest(N=bad_N):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_N_index_cases(bad_N,
+                                                        d,
+                                                        lam,
+                                                        alpha,
+                                                        beta,
+                                                        psi,
+                                                        b)
+                self.assertEqual("Invalid input: N must be a positive "
+                                 "integer.",
+                                 str(cm.exception))
+
+    def test_bad_d(self):
+        N = 10
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        b = 2
+        for bad_d in [-1, 0, 1.3, False, "hi"]:
+            with self.subTest(d=bad_d):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_N_index_cases(N,
+                                                        bad_d,
+                                                        lam,
+                                                        alpha,
+                                                        beta,
+                                                        psi,
+                                                        b)
+                self.assertEqual("Invalid input: d must be a positive "
+                                 "integer.",
+                                 str(cm.exception))
+
+    def test_bad_lam(self):
+        N = 10
+        d = 4
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        b = 2
+        for bad_lam in [-1, 0, False, "hi"]:
+            with self.subTest(lam=bad_lam):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_N_index_cases(N,
+                                                        d,
+                                                        bad_lam,
+                                                        alpha,
+                                                        beta,
+                                                        psi,
+                                                        b)
+                self.assertEqual("Invalid input: lam must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_alpha(self):
+        N = 10
+        d = 4
+        lam = 2
+        beta = 1
+        psi = 0.5
+        b = 2
+        for bad_alpha in [-1, 0, False, "hi"]:
+            with self.subTest(alpha=bad_alpha):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_N_index_cases(N,
+                                                        d,
+                                                        lam,
+                                                        bad_alpha,
+                                                        beta,
+                                                        psi,
+                                                        b)
+                self.assertEqual("Invalid input: alpha must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_beta(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        psi = 0.5
+        b = 2
+        for bad_beta in [-1, 0, False, "hi"]:
+            with self.subTest(beta=bad_beta):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_N_index_cases(N,
+                                                        d,
+                                                        lam,
+                                                        alpha,
+                                                        bad_beta,
+                                                        psi,
+                                                        b)
+                self.assertEqual("Invalid input: beta must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_psi(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        b = 2
+        for bad_psi in [-1, 0, 4.1, False, "hi"]:
+            with self.subTest(psi=bad_psi):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_N_index_cases(N,
+                                                        d,
+                                                        lam,
+                                                        alpha,
+                                                        beta,
+                                                        bad_psi,
+                                                        b)
+                self.assertEqual("Invalid input: psi must be a number "
+                                 "in the interval (0,1].",
+                                 str(cm.exception))
+
+    def test_bad_b(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        for bad_b in [-1, 0, False, "hi"]:
+            with self.subTest(b=bad_b):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_N_index_cases(N,
+                                                        d,
+                                                        lam,
+                                                        alpha,
+                                                        beta,
+                                                        psi,
+                                                        bad_b)
+                self.assertEqual("Invalid input: b must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
+    def test_bad_t_max(self):
+        N = 10
+        d = 4
+        lam = 2
+        alpha = 2
+        beta = 1
+        psi = 0.5
+        b = 2
+        for bad_t_max in [-1, 0, False, "hi"]:
+            with self.subTest(t_max=bad_t_max):
+                with self.assertRaises(SystemExit) as cm:
+                    infection_process.sim_N_index_cases(N,
+                                                        d,
+                                                        lam,
+                                                        alpha,
+                                                        beta,
+                                                        psi,
+                                                        b,
+                                                        bad_t_max)
+                self.assertEqual("Invalid input: t_max must be a positive "
+                                 "number.",
+                                 str(cm.exception))
+
 # TODO: test get R from df (with small df and known R)
 # TODO: test get R
 # TODO: test determine b
